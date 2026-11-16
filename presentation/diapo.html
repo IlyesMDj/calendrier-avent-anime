@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>L’Avent-ure Anime · démo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bangers&family=DM+Sans:wght@400;500;700&display=swap">
+<style>
+  :root {
+    --encre: #17141F; --papier: #F4EEDF; --bulle: #FBF8F0;
+    --jaune: #FFD23F; --rouge: #D7263D; --doux: #4A4556;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; overflow: hidden; background: #0E0C14; }
+  body { font-family: 'DM Sans', Arial, sans-serif; color: var(--encre); }
+
+  /* Une diapo = une planche de 1600 × 900, mise à l'échelle de l'écran. */
+  .diapo {
+    position: absolute; left: 50%; top: 50%; width: 1600px; height: 900px;
+    transform: translate(-50%, -50%) scale(var(--echelle, 1));
+    background-color: var(--papier);
+    background-image: radial-gradient(rgba(23, 20, 31, .12) 1.3px, transparent 1.5px);
+    background-size: 14px 14px;
+    padding: 72px 96px; display: flex; flex-direction: column; gap: 28px;
+    opacity: 0; visibility: hidden; transition: opacity .3s;
+    overflow: hidden; border: 10px solid var(--encre);
+  }
+  .diapo.active { opacity: 1; visibility: visible; }
+
+  .surtitre { font-weight: 700; font-size: 22px; letter-spacing: 3px; text-transform: uppercase; }
+  h1, h2, .cri { font-family: 'Bangers', Impact, sans-serif; font-weight: 400; letter-spacing: 2px; line-height: 1; }
+  h2 { font-size: 76px; text-shadow: 5px 5px 0 var(--jaune); }
+  p, li { font-size: 28px; line-height: 1.35; }
+
+  .case {
+    background: var(--bulle); border: 5px solid var(--encre); box-shadow: 9px 9px 0 var(--encre);
+    padding: 26px 30px;
+  }
+  .case h3 { font-family: 'Bangers', Impact, sans-serif; font-weight: 400; font-size: 40px; letter-spacing: 1px; margin-bottom: 10px; }
+  .pastille {
+    display: inline-block; background: var(--jaune); border: 3px solid var(--encre);
+    padding: 6px 14px; font-weight: 700; font-size: 22px; box-shadow: 4px 4px 0 var(--encre);
+  }
+  .lien { font-weight: 700; font-size: 30px; color: var(--encre); text-decoration: underline; text-decoration-thickness: 4px; text-decoration-color: var(--rouge); }
+
+  /* Arrivée en « pop » de chaque élément, l'un après l'autre. */
+  .diapo.active .pop { animation: pop .55s cubic-bezier(.2, 1.6, .4, 1) both; animation-delay: calc(var(--i, 0) * 110ms); }
+  @keyframes pop { from { opacity: 0; transform: scale(.6) rotate(-4deg); } }
+
+  /* 1. Couverture */
+  .couverture { justify-content: center; align-items: flex-start; }
+  .couverture::before {
+    content: ""; position: absolute; inset: -40%;
+    background: repeating-conic-gradient(from 0deg, rgba(255, 210, 63, .55) 0 6deg, transparent 6deg 14deg);
+    animation: tourne 60s linear infinite; z-index: 0;
+  }
+  @keyframes tourne { to { transform: rotate(360deg); } }
+  .couverture > * { position: relative; z-index: 1; }
+  .titre {
+    font-size: 170px; background: var(--bulle); border: 8px solid var(--encre);
+    box-shadow: 14px 14px 0 var(--encre); padding: 18px 40px 6px; rotate: -2deg;
+    text-shadow: 6px 6px 0 var(--jaune);
+  }
+  .don { position: absolute; top: 150px; left: 1130px; font-size: 90px; color: var(--rouge); rotate: 14deg; z-index: 2; }
+  .accroche { font-size: 38px; font-weight: 700; background: var(--encre); color: var(--bulle); padding: 12px 24px; rotate: -1deg; max-width: 1150px; }
+  .tampon {
+    position: absolute; right: 90px; bottom: 80px; z-index: 2;
+    font-family: 'Bangers', Impact, sans-serif; font-size: 48px; letter-spacing: 2px;
+    color: var(--rouge); border: 7px solid var(--rouge); padding: 10px 24px; rotate: -8deg; background: rgba(251, 248, 240, .9);
+  }
+
+  /* 2. Le principe : une chaîne de cases */
+  .chaine { display: grid; grid-template-columns: repeat(4, 1fr); gap: 48px; margin-top: 10px; }
+  .chaine .case { position: relative; min-height: 330px; }
+  .chaine .case:not(:last-child)::after {
+    content: "▶"; position: absolute; right: -48px; top: 50%; transform: translate(50%, -50%);
+    font-size: 40px; color: var(--rouge);
+  }
+  .chaine .numero { font-family: 'Bangers', Impact, sans-serif; font-size: 56px; color: var(--rouge); line-height: 1; }
+  .chaine p { font-size: 25px; }
+  .reglages { display: flex; gap: 22px; flex-wrap: wrap; margin-top: auto; }
+
+  /* 3. Démo : le journal du robot */
+  .deux { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: start; }
+  .etapes { display: flex; flex-direction: column; gap: 18px; list-style: none; }
+  .etapes li { display: flex; gap: 18px; align-items: flex-start; }
+  .etapes b.n { flex: none; width: 52px; height: 52px; display: grid; place-items: center; background: var(--encre); color: var(--jaune); font-family: 'Bangers', Impact, sans-serif; font-size: 34px; }
+  .journal { background: var(--encre); color: #EDE7F5; border: 5px solid var(--encre); box-shadow: 9px 9px 0 var(--jaune); padding: 26px 30px; font-family: Consolas, 'Courier New', monospace; }
+  .journal .tete { font-family: 'Bangers', Impact, sans-serif; font-size: 34px; color: var(--jaune); margin-bottom: 14px; letter-spacing: 1px; }
+  .journal p { font-size: 24px; line-height: 1.6; }
+  .journal span { color: var(--jaune); }
+
+  /* 4. Les cadeaux bien cachés */
+  .essais { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+  .essais li { font-size: 25px; display: flex; gap: 14px; align-items: baseline; }
+  .essais li::before { content: "✗"; flex: none; font-weight: 700; color: var(--rouge); font-size: 28px; }
+  .essais b { font-weight: 700; }
+  .blocage { background: var(--jaune); }
+
+  /* 5. Ce que je retiens */
+  .lecons { display: grid; grid-template-columns: repeat(3, 1fr); gap: 36px; }
+  .lecons .case { min-height: 250px; }
+  .lecons .gros { font-family: 'Bangers', Impact, sans-serif; font-size: 64px; color: var(--rouge); line-height: 1; margin-bottom: 8px; }
+  .outils { display: flex; flex-wrap: wrap; gap: 14px; }
+  .fin { margin-top: auto; display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; }
+
+  /* Repères de navigation */
+  .compteur { position: fixed; right: 18px; bottom: 14px; color: #CFC8DC; font: 600 14px 'DM Sans', sans-serif; letter-spacing: 1px; z-index: 5; }
+  .aide { position: fixed; left: 18px; bottom: 14px; color: #8F88A0; font: 13px 'DM Sans', sans-serif; z-index: 5; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .diapo.active .pop, .couverture::before { animation: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- 1. Couverture -->
+<section class="diapo couverture" aria-label="Diapo 1 sur 5 : le projet">
+  <p class="surtitre pop" style="--i:0">AI First · Meetup du 16/11 · Calendrier de l’Avent</p>
+  <h1 class="titre pop" style="--i:1">L’Avent-ure Anime</h1>
+  <span class="cri don pop" style="--i:2" lang="ja" aria-hidden="true">ドン！</span>
+  <p class="accroche pop" style="--i:3">Un anime par jour jusqu’à Noël, pour mes amis. Drôle, décalé, et ouvert par un robot.</p>
+  <p class="pop" style="--i:4; font-weight:700; font-size:30px">par Ilyés</p>
+  <p class="tampon pop" style="--i:5">Palier atteint : bonus</p>
+</section>
+
+<!-- 2. Le principe -->
+<section class="diapo" aria-label="Diapo 2 sur 5 : comment ça marche">
+  <p class="surtitre pop" style="--i:0">Comment ça marche</p>
+  <h2 class="pop" style="--i:1">Le robot ouvre les cases tout seul</h2>
+  <div class="chaine">
+    <div class="case pop" style="--i:2"><p class="numero">1</p><h3>Textes chiffrés</h3><p>Dans le dépôt GitHub public, mais illisibles sans la clé. La clé vit dans un secret GitHub.</p></div>
+    <div class="case pop" style="--i:3"><p class="numero">2</p><h3>Le robot</h3><p>GitHub Actions. Il calcule l’heure de Paris et ne garde que les cases dues.</p></div>
+    <div class="case pop" style="--i:4"><p class="numero">3</p><h3>Le site</h3><p>GitHub Pages. Le navigateur ne reçoit que les cases ouvertes.</p></div>
+    <div class="case pop" style="--i:5"><p class="numero">4</p><h3>Mes amis</h3><p>Une nouvelle case chaque jour, à minuit, sans que je touche à rien.</p></div>
+  </div>
+  <div class="reglages pop" style="--i:6">
+    <span class="pastille">Ce soir : 1 case toutes les 5 min</span>
+    <span class="pastille">En décembre : 1 case à 00:00 Paris = 23:00 UTC</span>
+    <span class="pastille">Un seul réglage : « mode »</span>
+  </div>
+</section>
+
+<!-- 3. Démo -->
+<section class="diapo" aria-label="Diapo 3 sur 5 : la démo">
+  <p class="surtitre pop" style="--i:0">Démo</p>
+  <h2 class="pop" style="--i:1">Une case ouverte par le robot</h2>
+  <div class="deux">
+    <ol class="etapes">
+      <li class="pop" style="--i:2"><b class="n">1</b><p>Le calendrier en ligne : la case du jour brille, les suivantes sont scellées.</p></li>
+      <li class="pop" style="--i:3"><b class="n">2</b><p>GitHub › Actions › « Robot du calendrier » : son journal, passage par passage.</p></li>
+      <li class="pop" style="--i:4"><b class="n">3</b><p>Lancé deux fois de suite, il répond « rien à publier » : aucune case en plus.</p></li>
+      <li class="pop" style="--i:5"><b class="n">4</b><p>Le look manga a été essayé sur une branche à part, puis adopté.</p></li>
+    </ol>
+    <div class="journal pop" style="--i:6" aria-label="Exemple de journal du robot">
+      <p class="tete">Journal du robot</p>
+      <p><span>Heure :</span> 16/11/2026 21:02 à Paris (20:02 UTC)</p>
+      <p><span>Déclencheur :</span> envoi sur GitHub</p>
+      <p><span>Mode :</span> soirée, une case toutes les 5 min</p>
+      <p><span>Cases ouvertes :</span> 7/24</p>
+      <p><span>Nouvelles :</span> 1, 2, 3, 4, 5, 6, 7</p>
+      <p><span>Décision :</span> publication</p>
+    </div>
+  </div>
+</section>
+
+<!-- 4. Les cadeaux bien cachés -->
+<section class="diapo" aria-label="Diapo 4 sur 5 : la sécurité">
+  <p class="surtitre pop" style="--i:0">Les cadeaux bien cachés</p>
+  <h2 class="pop" style="--i:1">Personne ne lit la case 24 en avance</h2>
+  <div class="deux">
+    <div class="case pop" style="--i:2">
+      <h3>Chemins essayés, sans succès</h3>
+      <ul class="essais">
+        <li><span><b>Code source</b> : aucune case fermée n’a de texte</span></li>
+        <li><span><b>Adresses devinées</b> (case/24, cases.json, .cle) : page absente</span></li>
+        <li><span><b>Date changée</b> ou ?date=… dans l’adresse : rien</span></li>
+        <li><span><b>Dépôt et historique</b> : textes chiffrés, clé jamais sauvegardée</span></li>
+        <li><span><b>Journal du robot</b> : des numéros, jamais un texte</span></li>
+        <li><span><b>Légendes de sauvegarde</b> : neutres, aucun titre dévoilé</span></li>
+      </ul>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:30px">
+      <div class="case blocage pop" style="--i:3">
+        <h3>Là où j’ai coincé</h3>
+        <p>Le passage planifié de GitHub ne s’est jamais lancé ce soir, alors que la tâche était active.</p>
+        <p style="margin-top:12px"><b>Parade :</b> le bouton « Run workflow » et un lancement après chaque envoi.</p>
+      </div>
+      <div class="case pop" style="--i:4">
+        <h3>Vérifié avec</h3>
+        <p>La skill security-audit de Cloudflare, puis le défi du voisin.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 5. Ce que je retiens -->
+<section class="diapo" aria-label="Diapo 5 sur 5 : ce que je retiens">
+  <p class="surtitre pop" style="--i:0">Ce que je retiens</p>
+  <h2 class="pop" style="--i:1">Trois leçons pour le même brief</h2>
+  <div class="lecons">
+    <div class="case pop" style="--i:2"><p class="gros">Chiffrer tôt</p><p>Dès le début : rien ne fuit, même dans l’historique public.</p></div>
+    <div class="case pop" style="--i:3"><p class="gros">Robot tôt</p><p>GitHub peut mettre plus d’une heure à lancer le premier passage.</p></div>
+    <div class="case pop" style="--i:4"><p class="gros">Légendes neutres</p><p>Une légende de sauvegarde publique peut dévoiler une surprise.</p></div>
+  </div>
+  <div class="fin">
+    <div style="display:flex; flex-direction:column; gap:16px">
+      <p class="pop" style="--i:5; font-size:24px"><b>Méthode :</b> brief et kit donnés à Claude Code, palier par palier, une sauvegarde par étape.</p>
+      <div class="outils pop" style="--i:6">
+        <span class="pastille">Claude Code</span><span class="pastille">GitHub Actions</span><span class="pastille">GitHub Pages</span>
+        <span class="pastille">SmartPlan</span><span class="pastille">security-audit</span><span class="pastille">Node.js</span>
+      </div>
+    </div>
+  </div>
+  <a class="lien pop" style="--i:7" href="https://ilyesmdj.github.io/calendrier-avent-anime/">ilyesmdj.github.io/calendrier-avent-anime</a>
+</section>
+
+<p class="compteur" id="compteur" aria-live="polite"></p>
+<p class="aide">← → ou clic pour avancer · F : plein écran</p>
+
+<script>
+  const diapos = [...document.querySelectorAll('.diapo')];
+  let actuelle = 0;
+
+  function ajuster() {
+    const echelle = Math.min(innerWidth / 1600, innerHeight / 900);
+    document.documentElement.style.setProperty('--echelle', echelle);
+  }
+
+  function montrer(n) {
+    actuelle = Math.max(0, Math.min(diapos.length - 1, n));
+    diapos.forEach((d, i) => d.classList.toggle('active', i === actuelle));
+    document.getElementById('compteur').textContent = `${actuelle + 1} / ${diapos.length}`;
+    history.replaceState(null, '', `#${actuelle + 1}`);
+  }
+
+  addEventListener('resize', ajuster);
+  addEventListener('keydown', (e) => {
+    if (['ArrowRight', 'ArrowDown', 'PageDown', ' ', 'Enter'].includes(e.key)) { e.preventDefault(); montrer(actuelle + 1); }
+    else if (['ArrowLeft', 'ArrowUp', 'PageUp', 'Backspace'].includes(e.key)) { e.preventDefault(); montrer(actuelle - 1); }
+    else if (e.key === 'Home') montrer(0);
+    else if (e.key === 'End') montrer(diapos.length - 1);
+    else if (e.key === 'f' || e.key === 'F') {
+      if (document.fullscreenElement) document.exitFullscreen();
+      else document.documentElement.requestFullscreen?.();
+    }
+  });
+  addEventListener('click', (e) => {
+    if (e.target.closest('a')) return;
+    montrer(actuelle + (e.clientX > innerWidth / 3 ? 1 : -1));
+  });
+
+  ajuster();
+  montrer((parseInt(location.hash.slice(1), 10) || 1) - 1);
+</script>
+</body>
+</html>
