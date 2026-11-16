@@ -110,3 +110,33 @@ h1 { margin: 0; font-size: clamp(1.5rem, 5vw, 2.4rem); line-height: 1.15; letter
 .pied { margin-top: 24px; text-align: center; font-size: 0.75rem; color: var(--texte-doux); }
 
 .case.du-jour .icone { top: 10%; right: auto; left: 50%; transform: translateX(-50%); }
+
+/* La fenêtre d'une case ouverte */
+.fenetre {
+  width: min(560px, calc(100vw - 32px)); max-height: calc(100vh - 48px);
+  border: 0; border-radius: 18px; padding: 20px 22px 24px;
+  background: var(--ouverte); color: var(--ouverte-texte);
+}
+.fenetre::backdrop { background: rgb(5 10 20 / 0.7); }
+.fenetre-haut { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.fenetre-jour { margin: 0; font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; opacity: 0.75; }
+.fenetre h2 { margin: 6px 0 10px; font-size: 1.4rem; line-height: 1.25; }
+.fenetre-corps p { margin: 0 0 10px; }
+.fermer {
+  font: inherit; font-size: 0.85rem; border: 1px solid currentColor; background: transparent; color: inherit;
+  border-radius: 999px; padding: 4px 12px; cursor: pointer;
+}
+.lien { display: inline-block; margin-top: 4px; color: #8a4b00; font-weight: 600; }
+.a-ecrire-texte { color: #9b1c1c; font-weight: 600; }
+
+.quiz-question { font-weight: 600; }
+.quiz-choix { display: flex; flex-wrap: wrap; gap: 8px; }
+.quiz-bouton {
+  font: inherit; min-width: 64px; padding: 8px 14px; border-radius: 10px; cursor: pointer;
+  border: 2px solid var(--ouverte-texte); background: #fff; color: var(--ouverte-texte);
+}
+.quiz-bouton:disabled { cursor: default; opacity: 0.6; }
+.quiz-bouton.bonne { opacity: 1; background: #1f7a3a; border-color: #1f7a3a; color: #fff; }
+.quiz-bouton.bonne::before { content: "✓ "; }
+.quiz-bouton.fausse { opacity: 1; text-decoration: line-through; }
+.quiz-resultat { min-height: 1.5em; margin-top: 10px; }

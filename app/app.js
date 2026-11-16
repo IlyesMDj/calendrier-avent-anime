@@ -70,9 +70,65 @@ function creerCase(c, maintenant) {
   return li;
 }
 
-function ouvrirCase(c) {
-  annoncer(c.aEcrire ? `La case ${c.jour} n'a pas encore de contenu.` : `Case ${c.jour} : ${c.contenu.titre ?? ''}`);
+function el(balise, classe, texte) {
+  const e = document.createElement(balise);
+  if (classe) e.className = classe;
+  if (texte != null) e.textContent = texte;
+  return e;
 }
+
+function creerQuiz(quiz) {
+  const bloc = el('div', 'quiz');
+  bloc.append(el('p', 'quiz-question', quiz.question));
+  const choix = el('div', 'quiz-choix');
+  const resultat = el('p', 'quiz-resultat');
+  resultat.setAttribute('aria-live', 'polite');
+  for (const texte of quiz.choix) {
+    const b = el('button', 'quiz-bouton', texte);
+    b.type = 'button';
+    b.addEventListener('click', () => {
+      for (const autre of choix.children) {
+        autre.disabled = true;
+        if (autre.textContent === quiz.reponse) autre.classList.add('bonne');
+      }
+      const juste = texte === quiz.reponse;
+      if (!juste) b.classList.add('fausse');
+      resultat.textContent = `${juste ? 'Bonne réponse !' : `Raté, la réponse était : ${quiz.reponse}.`} ${quiz.explication ?? ''}`;
+    });
+    choix.append(b);
+  }
+  bloc.append(choix, resultat);
+  return bloc;
+}
+
+function ouvrirCase(c) {
+  $('fenetre-jour').textContent = `${c.jour} décembre${c.etat === 'du-jour' ? ' · case du jour' : ''}`;
+  const corps = $('fenetre-corps');
+  corps.replaceChildren();
+
+  if (c.aEcrire) {
+    $('fenetre-titre').textContent = `Case ${c.jour}`;
+    corps.append(el('p', 'a-ecrire-texte', 'Cette case n\'a pas encore de contenu.'));
+  } else {
+    const { titre, texte, lien, quiz } = c.contenu;
+    $('fenetre-titre').textContent = titre ?? `Case ${c.jour}`;
+    for (const paragraphe of (texte ?? '').split(/\n+/).filter(Boolean)) corps.append(el('p', null, paragraphe));
+    if (quiz) corps.append(creerQuiz(quiz));
+    if (lien) {
+      const a = el('a', 'lien', lien.libelle);
+      a.href = lien.url;
+      a.target = '_blank';
+      a.rel = 'noopener noreferrer';
+      corps.append(a);
+    }
+  }
+  $('fenetre').showModal();
+}
+
+$('fermer').addEventListener('click', () => $('fenetre').close());
+$('fenetre').addEventListener('click', (e) => {
+  if (e.target === $('fenetre')) $('fenetre').close(); // clic à côté de la fenêtre
+});
 
 function afficher(d) {
   const maintenant = new Date(d.apercu?.date ?? Date.now());
