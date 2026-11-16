@@ -1,14 +1,20 @@
-# Publie le calendrier sur GitHub Pages.
-# Il ne publie que les cases déjà ouvertes : les textes chiffrés sont ouverts
-# avec le secret CLE_CALENDRIER, puis seules les cases dues partent en ligne.
-# Si une étape échoue, rien n'est publié et la version précédente reste en ligne.
+# Le robot du calendrier.
+# Il passe toutes les 5 minutes (la fréquence la plus courte permise par GitHub),
+# quand on le lance à la main (bouton « Run workflow »), et après chaque envoi sur main.
+# À chaque passage : il calcule les cases dues à l'heure de Paris, ouvre les textes
+# chiffrés avec le secret CLE_CALENDRIER, et ne publie que si quelque chose a changé.
+# Le rythme (une case par jour ou mode soirée) se règle dans calendrier.json, pas ici.
+# Les horaires GitHub sont en UTC : minuit à Paris en décembre = 23:00 UTC la veille.
+# Si une étape échoue, rien n'est publié : la version précédente reste en ligne.
 
-name: Publier le calendrier
+name: Robot du calendrier
 
 on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
   push:
     branches: [main]
-  workflow_dispatch:
 
 permissions:
   contents: read
@@ -20,11 +26,11 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  publier:
+  preparer:
+    name: Passage du robot
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deploiement.outputs.page_url }}
+    outputs:
+      publier: ${{ steps.robot.outputs.publier }}
     steps:
       - name: Récupérer le projet
         uses: actions/checkout@v5
@@ -34,19 +40,32 @@ jobs:
         with:
           node-version: 22
 
-      - name: Fabriquer le site (cases ouvertes seulement)
-        env:
-          CLE_CALENDRIER: ${{ secrets.CLE_CALENDRIER }}
-        run: node scripts/construire.mjs
-
-      - name: Préparer GitHub Pages
+      - name: Trouver l'adresse du site
+        id: pages
         uses: actions/configure-pages@v5
 
+      - name: Fabriquer, comparer et tenir le journal
+        id: robot
+        env:
+          CLE_CALENDRIER: ${{ secrets.CLE_CALENDRIER }}
+          ADRESSE_SITE: ${{ steps.pages.outputs.base_url }}
+        run: node scripts/robot.mjs
+
       - name: Emballer le site
+        if: steps.robot.outputs.publier == 'true'
         uses: actions/upload-pages-artifact@v4
         with:
           path: _site
 
+  publier:
+    name: Mise en ligne
+    needs: preparer
+    if: needs.preparer.outputs.publier == 'true'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploiement.outputs.page_url }}
+    steps:
       - name: Mettre en ligne
         id: deploiement
         uses: actions/deploy-pages@v4
