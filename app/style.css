@@ -1,142 +1,422 @@
+/* Calendrier « un anime par jour » : la grille est une planche de manga.
+   Papier, encre et trame (points de demi-teinte) : tout est dessiné en CSS, sans image. */
+
 :root {
-  --fond: #0f1b2d;
-  --fond-2: #16263d;
-  --texte: #f4efe6;
-  --texte-doux: #b9c2d0;
-  --accent: #f2b53c;
-  --accent-texte: #1d1405;
-  --ouverte: #e9e2d3;
-  --ouverte-texte: #1b2433;
-  --fermee: #1d3049;
-  --fermee-bord: #2d4566;
-  --a-ecrire: #ff7a7a;
-  --rayon: 14px;
-  color-scheme: dark;
+  /* Papier et encre */
+  --papier: #f6f1e5;
+  --papier-2: #e4dccb;
+  --bulle: #ffffff;
+  --encre: #141414;
+  --encre-douce: #46423b;
+  --trame-legere: rgb(20 20 20 / 0.09);
+  --trame: rgb(20 20 20 / 0.22);
+  --trame-forte: rgb(20 20 20 / 0.45);
+  /* Accents */
+  --accent: #d7262f;
+  --accent-texte: #ffffff;
+  --jaune: #ffd84a;
+  --a-ecrire: #ff6b70;
+  --focus: #0b57ff;
+  --lien: #8a4b00;
+  --alerte: #9b1c1c;
+  --juste: #1f7a3a;
+  /* Polices : titres et numéros en Bangers, texte et kana en Zen Maru Gothic */
+  --police-titre: "Bangers", "Impact", "Arial Black", system-ui, sans-serif;
+  --police-texte: "Zen Maru Gothic", system-ui, "Segoe UI", "Yu Gothic", "Meiryo", sans-serif;
+  --police-kana: "Zen Maru Gothic", "Yu Gothic", "Meiryo", "Hiragino Sans", sans-serif;
+  /* Mise en page */
+  --page: 1080px;
+  --marge: 12px;
+  --trait: 2.5px;
+  color-scheme: light;
+}
+@media (width >= 720px) {
+  :root { --marge: 24px; --trait: 3px; }
 }
 
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }
 
 body {
   margin: 0;
   min-height: 100vh;
-  background:
-    radial-gradient(1200px 600px at 50% -10%, #23395a 0%, transparent 60%),
-    var(--fond);
-  color: var(--texte);
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  padding: 0 var(--marge) 40px;
+  background-color: var(--papier);
+  background-image: radial-gradient(circle, var(--trame-legere) 0.9px, transparent 1.4px);
+  background-size: 8px 8px;
+  color: var(--encre);
+  font-family: var(--police-texte);
   line-height: 1.5;
-  padding: 0 16px 32px;
+}
+/* Trame en dégradé dans deux coins de la page, comme une trame collée sur la planche. */
+body::before {
+  content: "";
+  position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(circle, var(--trame) 1.5px, transparent 2px) 0 0 / 10px 10px,
+    radial-gradient(circle, var(--trame) 1.5px, transparent 2px) 5px 5px / 10px 10px;
+  -webkit-mask-image: radial-gradient(circle at 100% 0, #000, transparent 45%), radial-gradient(circle at 0 100%, #000, transparent 40%);
+  mask-image: radial-gradient(circle at 100% 0, #000, transparent 45%), radial-gradient(circle at 0 100%, #000, transparent 40%);
 }
 
-.entete, main, .pied, .mot-de-fin { max-width: 860px; margin-inline: auto; }
+.entete, main, .pied, .mot-de-fin { max-width: var(--page); margin-inline: auto; }
 
-.entete { padding: 20px 0 8px; text-align: center; }
-h1 { margin: 0; font-size: clamp(1.5rem, 5vw, 2.4rem); line-height: 1.15; letter-spacing: -0.01em; }
-.sous-titre { margin: 4px 0 12px; color: var(--texte-doux); }
+/* ---------- Bandeau d'aperçu : une « note de l'éditeur » ---------- */
+.bandeau-apercu {
+  position: relative; max-width: var(--page); margin: 18px auto 0; padding: 12px 16px 10px 18px;
+  background: var(--jaune); color: var(--encre);
+  border: 3px solid var(--encre); box-shadow: 5px 5px 0 var(--encre);
+  text-align: left; font-size: 0.88rem; font-weight: 700; line-height: 1.35;
+}
+.bandeau-apercu::before {
+  content: "Note de l'éditeur";
+  position: absolute; top: -13px; left: 12px; padding: 0 10px;
+  background: var(--encre); color: var(--bulle);
+  font-family: var(--police-titre); font-weight: 400; font-size: 0.95rem; letter-spacing: 0.06em; line-height: 1.5;
+  rotate: -2deg;
+}
 
+/* ---------- En-tête : le bloc-titre d'un manga ---------- */
+.entete { padding: 30px 0 4px; text-align: center; }
+.bloc-titre {
+  position: relative; display: inline-block; max-width: 100%;
+  margin: 0 0 22px; padding: 14px 22px 14px;
+  background: var(--bulle); border: 4px solid var(--encre);
+  box-shadow: 7px 7px 0 var(--encre);
+}
+/* Un coin de trame collée sur le bloc-titre. */
+.bloc-titre::before {
+  content: ""; position: absolute; left: 0; bottom: 0; width: 38%; height: 46%; pointer-events: none;
+  background: radial-gradient(circle, var(--trame) 1.2px, transparent 1.7px) 0 0 / 6px 6px;
+  -webkit-mask-image: linear-gradient(45deg, #000, transparent 75%); mask-image: linear-gradient(45deg, #000, transparent 75%);
+}
+.bloc-titre > h1, .bloc-titre > .sous-titre { position: relative; }
+h1 {
+  margin: 0;
+  font-family: var(--police-titre); font-weight: 400;
+  font-size: clamp(2.2rem, 9vw, 4.4rem); line-height: 1; letter-spacing: 0.03em;
+  color: var(--encre); text-shadow: 3px 3px 0 var(--accent);
+}
+.sous-titre {
+  display: inline-block; margin: 10px 0 0; padding: 3px 16px;
+  background: var(--encre); color: var(--bulle);
+  font-weight: 700; font-size: clamp(0.85rem, 2.6vw, 1rem); line-height: 1.35;
+  clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%);
+}
+.sous-titre:empty { display: none; }
+/* Onomatopée décorative (« don ! », le bruit d'une grande révélation). */
+.onomatopee {
+  position: absolute; top: -26px; right: 8px;
+  font-family: var(--police-kana); font-weight: 900; font-size: 1.9rem; line-height: 1;
+  color: var(--accent); -webkit-text-stroke: 1.5px var(--encre); paint-order: stroke fill;
+  text-shadow: 2px 2px 0 var(--encre);
+  rotate: 10deg;
+}
+
+/* ---------- Légende ---------- */
 .legende {
-  display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 16px;
-  list-style: none; margin: 0; padding: 0; font-size: 0.85rem; color: var(--texte-doux);
+  display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 12px;
+  list-style: none; margin: 0; padding: 0; font-size: 0.85rem; font-weight: 700;
 }
-.legende li { display: inline-flex; align-items: center; gap: 6px; }
+.legende li {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 3px 10px 3px 4px; background: var(--bulle); border: 2px solid var(--encre);
+}
 .pastille {
-  display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 6px;
+  display: inline-grid; place-items: center; width: 24px; height: 24px;
+  border: 2px solid var(--encre); color: var(--encre);
 }
-.pastille svg { width: 14px; height: 14px; }
-.pastille.ouverte { background: var(--ouverte); color: var(--ouverte-texte); }
-.pastille.du-jour { background: var(--accent); color: var(--accent-texte); border-radius: 50%; }
-.pastille.fermee { background: var(--fermee); color: var(--texte-doux); border: 1px solid var(--fermee-bord); }
+.pastille svg { width: 13px; height: 13px; position: relative; }
+/* Les trois mêmes habillages que les cases : trame (ouverte), rayons (du jour), bandelette (fermée). */
+.pastille.ouverte { background: radial-gradient(circle, var(--trame) 1px, transparent 1.5px) 0 0 / 5px 5px, var(--bulle); }
+.pastille.du-jour {
+  background: repeating-conic-gradient(var(--jaune) 0 12deg, var(--bulle) 12deg 24deg);
+  color: var(--accent); border-width: 3.5px; width: 27px; height: 27px;
+}
+.pastille.fermee {
+  background:
+    linear-gradient(90deg, var(--encre) 0 1.5px, var(--bulle) 1.5px 8.5px, var(--encre) 8.5px 10px) 50% 0 / 10px 100% no-repeat,
+    radial-gradient(circle, var(--trame-forte) 1px, transparent 1.5px) 0 0 / 4px 4px,
+    var(--papier-2);
+}
 
+/* ---------- La planche : 24 cases de tailles et d'angles irréguliers ----------
+   Chaque li reçoit, selon sa place (tableaux plus bas) :
+   --cols / --rangs : nombre de colonnes / de rangées occupées ;
+   --pente-g, --pente-d : inclinaison du bord gauche / droit (px ; positif = « / », négatif = « \ ») ;
+   --pente-h, --pente-b : inclinaison du bord haut / bas (px ; positif = bout gauche plus haut).
+   Deux voisines partagent la même pente : la gouttière entre elles reste parallèle.
+   Le placement suit l'ordre du DOM (pas de « dense ») et chaque rangée est remplie exactement. */
 .grille {
-  list-style: none; margin: 16px 0 0; padding: 0;
-  display: grid; gap: 8px;
-  grid-template-columns: repeat(4, 1fr);
+  --debord: 6px; /* le cadre peut déborder dans la gouttière jusqu'à cette distance */
+  list-style: none; margin: 24px 0 0; padding: 0;
+  display: grid; gap: 6px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-auto-rows: 112px;
 }
-@media (min-width: 640px) {
-  .grille { grid-template-columns: repeat(6, 1fr); gap: 12px; }
+@media (width >= 720px) {
+  .grille {
+    --debord: 12px;
+    gap: 14px;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    grid-auto-rows: 136px;
+  }
 }
 
+.grille > li {
+  --cols: 1; --rangs: 1;
+  --pente-g: 0px; --pente-d: 0px; --pente-h: 0px; --pente-b: 0px;
+  display: grid;
+  grid-column: span var(--cols);
+  grid-row: span var(--rangs);
+}
+
+/* Planche mobile : 4 colonnes. */
+@media (width < 720px) {
+  .grille > li:nth-child(1)  { --cols: 3; --pente-d: 10px; }
+  .grille > li:nth-child(2)  { --pente-g: 10px; }
+  .grille > li:nth-child(3)  { --rangs: 2; }
+  .grille > li:nth-child(4)  { --cols: 3; }
+  .grille > li:nth-child(5)  { --cols: 2; --pente-d: -10px; }
+  .grille > li:nth-child(6)  { --pente-g: -10px; }
+  .grille > li:nth-child(7)  { --cols: 2; --pente-d: 12px; }
+  .grille > li:nth-child(8)  { --cols: 2; --pente-g: 12px; }
+  .grille > li:nth-child(9)  { --cols: 4; --pente-h: 0px; }
+  .grille > li:nth-child(10) { --pente-d: -10px; }
+  .grille > li:nth-child(11) { --cols: 2; --pente-g: -10px; --pente-d: 10px; }
+  .grille > li:nth-child(12) { --pente-g: 10px; }
+  .grille > li:nth-child(13) { --cols: 2; --rangs: 2; }
+  .grille > li:nth-child(14) { --cols: 2; }
+  .grille > li:nth-child(15) { --pente-d: 10px; }
+  .grille > li:nth-child(16) { --pente-g: 10px; --pente-b: 10px; }
+  .grille > li:nth-child(17) { --cols: 3; --pente-d: -12px; }
+  .grille > li:nth-child(18) { --pente-g: -12px; --pente-h: 10px; }
+  .grille > li:nth-child(19) { --pente-d: 12px; }
+  .grille > li:nth-child(20) { --cols: 3; --pente-g: 12px; }
+  .grille > li:nth-child(21) { --cols: 2; --pente-d: -12px; }
+  .grille > li:nth-child(22) { --cols: 2; --pente-g: -12px; }
+  .grille > li:nth-child(23) { --rangs: 2; --pente-d: 12px; }
+  .grille > li:nth-child(24) { --cols: 3; --rangs: 2; --pente-g: 12px; }
+}
+
+/* Planche large : 6 colonnes. */
+@media (width >= 720px) {
+  .grille > li:nth-child(1)  { --cols: 3; --pente-d: 18px; }
+  .grille > li:nth-child(2)  { --cols: 2; --pente-g: 18px; --pente-d: -16px; }
+  .grille > li:nth-child(3)  { --pente-g: -16px; }
+  .grille > li:nth-child(4)  { --cols: 2; --rangs: 2; }
+  .grille > li:nth-child(5)  { --cols: 4; }
+  .grille > li:nth-child(6)  { --cols: 2; --pente-d: 20px; }
+  .grille > li:nth-child(7)  { --cols: 2; --pente-g: 20px; --pente-b: 22px; }
+  .grille > li:nth-child(8)  { --pente-d: -14px; }
+  .grille > li:nth-child(9)  { --cols: 3; --pente-g: -14px; --pente-d: 22px; }
+  .grille > li:nth-child(10) { --cols: 2; --pente-g: 22px; --pente-h: 22px; --pente-b: -22px; }
+  .grille > li:nth-child(11) { --cols: 4; }
+  .grille > li:nth-child(12) { --cols: 2; --rangs: 2; --pente-h: -22px; }
+  .grille > li:nth-child(13) { --cols: 2; --pente-d: -18px; --pente-b: 20px; }
+  .grille > li:nth-child(14) { --cols: 2; --pente-g: -18px; }
+  .grille > li:nth-child(15) { --cols: 2; --pente-h: 20px; --pente-d: 16px; }
+  .grille > li:nth-child(16) { --pente-g: 16px; --pente-d: -20px; }
+  .grille > li:nth-child(17) { --cols: 3; --pente-g: -20px; --pente-b: -24px; }
+  .grille > li:nth-child(18) { --cols: 3; --pente-d: 24px; }
+  .grille > li:nth-child(19) { --cols: 3; --pente-g: 24px; --pente-h: -24px; --pente-b: 24px; }
+  .grille > li:nth-child(20) { --cols: 2; --pente-d: -16px; --pente-b: -20px; }
+  .grille > li:nth-child(21) { --pente-g: -16px; --pente-d: 18px; }
+  .grille > li:nth-child(22) { --cols: 3; --pente-g: 18px; --pente-h: 24px; }
+  .grille > li:nth-child(23) { --cols: 2; --rangs: 2; --pente-h: -20px; --pente-d: 24px; }
+  .grille > li:nth-child(24) { --cols: 4; --rangs: 2; --pente-g: 24px; }
+}
+
+/* ---------- Une case ----------
+   Le bouton est un rectangle invisible, jamais découpé (il porte l'anneau de focus).
+   .cadre dessine la case penchée derrière le contenu ; seule la partie dessinée réagit au pointeur. */
 .case {
-  position: relative; width: 100%; aspect-ratio: 1 / 0.9;
-  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
-  border-radius: var(--rayon); border: 1px solid transparent;
-  font: inherit; color: inherit; cursor: pointer; padding: 6px;
+  position: relative; isolation: isolate;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px;
+  min-width: 0; margin: 0; padding: 26px 6px 8px; /* en haut : la place du pictogramme */
+  border: 0; background: none;
+  font: inherit; color: var(--encre); cursor: pointer;
+  container-type: size;
+  pointer-events: none;
 }
-@media (min-width: 640px) { .case { aspect-ratio: 1; } }
+.case > * { pointer-events: auto; }
 
-.case .numero { font-size: clamp(1.4rem, 6vw, 2rem); font-weight: 800; line-height: 1; }
-.case .etiquette { font-size: 0.7rem; line-height: 1.2; text-align: center; }
-.case .icone { position: absolute; top: 6px; right: 6px; width: 16px; height: 16px; }
-.case .icone svg { width: 100%; height: 100%; display: block; }
-
-.case.ouverte { background: var(--ouverte); color: var(--ouverte-texte); }
-.case.ouverte:hover { transform: translateY(-2px); }
-
-.case.du-jour {
-  background: var(--accent); color: var(--accent-texte);
-  outline: 3px solid var(--texte); outline-offset: 3px;
-  border-radius: 50% / 46%;
+.cadre {
+  --retrait: 0px;
+  position: absolute; inset: calc(-1 * var(--debord)); z-index: -1;
+  background: var(--encre); /* l'encre du bord */
+  transition: translate 0.15s ease;
 }
-.case.du-jour .etiquette { font-weight: 700; }
+.cadre::before {
+  --retrait: var(--trait);
+  content: "";
+  position: absolute; inset: 0;
+  background: var(--fond-case, var(--bulle));
+}
+/* Le même polygone pour l'encre (retrait 0) et pour l'intérieur (retrait = épaisseur du trait). */
+.cadre, .cadre::before {
+  clip-path: polygon(
+    calc(var(--debord) + var(--pente-g) / 2 + var(--retrait))        calc(var(--debord) - var(--pente-h) / 2 + var(--retrait)),
+    calc(100% - var(--debord) + var(--pente-d) / 2 - var(--retrait)) calc(var(--debord) + var(--pente-h) / 2 + var(--retrait)),
+    calc(100% - var(--debord) - var(--pente-d) / 2 - var(--retrait)) calc(100% - var(--debord) + var(--pente-b) / 2 - var(--retrait)),
+    calc(var(--debord) - var(--pente-g) / 2 + var(--retrait))        calc(100% - var(--debord) - var(--pente-b) / 2 - var(--retrait))
+  );
+}
+
+/* Le contenu reste droit, à l'intérieur du trait, même quand les coins sont penchés. */
+.case .numero {
+  font-family: var(--police-titre); font-weight: 400;
+  font-size: clamp(1.5rem, 34cqmin, 4.5rem); line-height: 1; letter-spacing: 0.02em;
+  padding: 0.12em 0.32em 0.04em;
+  background-color: var(--bulle); color: var(--encre);
+  border: 2.5px solid var(--encre);
+}
+.case .etiquette {
+  max-width: 100%;
+  font-size: clamp(0.68rem, 10cqmin, 1rem); font-weight: 700; line-height: 1.2; letter-spacing: -0.01em;
+  padding: 1px 4px; white-space: nowrap;
+  background-color: var(--bulle); color: var(--encre);
+}
+.case .icone {
+  position: absolute;
+  top: calc(max(0px, var(--pente-h) / -2) + var(--trait) + 5px);
+  left: calc(max(0px, var(--pente-g) / 2) + var(--trait) + 5px);
+  display: grid; place-items: center;
+  width: 22px; height: 22px; border-radius: 50%;
+  background: var(--bulle); border: 2px solid var(--encre);
+}
+.case .icone svg { width: 12px; height: 12px; display: block; }
+@media (width >= 720px) {
+  .case { padding: 14px 12px; gap: 6px; }
+  .case .etiquette { font-size: clamp(0.8rem, 10cqmin, 1.05rem); }
+  .case .icone { width: 28px; height: 28px; top: calc(max(0px, var(--pente-h) / -2) + var(--trait) + 7px); left: calc(max(0px, var(--pente-g) / 2) + var(--trait) + 7px); }
+  .case .icone svg { width: 15px; height: 15px; }
+}
+
+/* ---------- États : trois habillages qui se lisent sans la couleur ----------
+   ouverte = case encrée : trait noir, trame de points, hachures dans le coin ;
+   du jour = trait épais, fond jaune et lignes de vitesse noires qui rayonnent ;
+   fermée  = case scellée par une bandelette de papier (ofuda) tamponnée de rouge. */
+.cadre::after { content: ""; position: absolute; inset: 0; pointer-events: none; }
+
+.case.ouverte {
+  --fond-case:
+    linear-gradient(150deg, var(--bulle) 45%, rgb(255 255 255 / 0) 95%),
+    radial-gradient(circle, var(--trame) 1.1px, transparent 1.6px) 0 0 / 7px 7px,
+    var(--bulle);
+}
+.case.ouverte .cadre::after {
+  background: repeating-linear-gradient(135deg, var(--encre) 0 1.5px, transparent 1.5px 6px);
+  -webkit-mask-image: linear-gradient(45deg, #000, transparent 38%);
+  mask-image: linear-gradient(45deg, #000, transparent 38%);
+}
+
+.case.du-jour { --trait: 5px; --fond-case: repeating-conic-gradient(var(--jaune) 0 7deg, #fff0a8 7deg 14deg); }
+.case.du-jour .icone { color: var(--accent); }
+.case.du-jour .cadre::after {
+  background: repeating-conic-gradient(from 2deg at 50% 50%, var(--encre) 0 1.4deg, transparent 1.4deg 9deg);
+  -webkit-mask-image: radial-gradient(ellipse at 50% 50%, transparent 38%, #000 92%);
+  mask-image: radial-gradient(ellipse at 50% 50%, transparent 38%, #000 92%);
+}
 
 .case.fermee {
-  background: repeating-linear-gradient(135deg, var(--fermee) 0 10px, var(--fond-2) 10px 20px);
-  border-color: var(--fermee-bord); color: var(--texte-doux); cursor: not-allowed;
+  --fond-case: radial-gradient(circle, var(--trame-forte) 1.3px, transparent 1.9px) 0 0 / 6px 6px, var(--papier-2);
+  cursor: not-allowed;
 }
+/* La bandelette : papier clair, bords à l'encre, traits de « kanji », tampon rouge en haut. */
+.case.fermee .cadre::after {
+  inset: -10% auto -10% calc(50% - 12px); width: 24px; rotate: 7deg;
+  background:
+    radial-gradient(circle at 50% 17%, var(--accent) 0 4.5px, transparent 5px),
+    radial-gradient(circle at 50% 17%, transparent 0 6px, var(--accent) 6.5px 7.5px, transparent 8px),
+    repeating-linear-gradient(180deg, transparent 0 4px, var(--encre) 4px 6px, transparent 6px 11px) 50% 38% / 8px 40% no-repeat,
+    var(--bulle);
+  border-inline: 2px solid var(--encre);
+}
+@media (width >= 720px) {
+  .case.fermee .cadre::after { inset-inline-start: calc(50% - 16px); width: 32px; }
+}
+.case:not(.fermee):hover .cadre { translate: 0 -3px; }
 
-.case.a-ecrire { box-shadow: inset 0 0 0 3px var(--a-ecrire); }
+/* Pastille « à écrire » : un autocollant penché, avec ombre dure. */
 .case.a-ecrire::after {
-  content: "à écrire"; position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%);
-  background: var(--a-ecrire); color: #2a0505; font-size: 0.6rem; font-weight: 700;
-  padding: 0 5px; border-radius: 4px; white-space: nowrap;
+  content: "à écrire";
+  position: absolute;
+  right: calc(max(0px, var(--pente-d) / 2) + var(--trait) + 5px);
+  bottom: calc(max(0px, var(--pente-b) / -2) + var(--trait) + 5px);
+  padding: 0 6px; border: 2px solid var(--encre);
+  background: var(--a-ecrire); color: var(--encre);
+  box-shadow: 2px 2px 0 var(--encre); rotate: -4deg;
+  font-size: 0.64rem; font-weight: 900; line-height: 1.4; white-space: nowrap;
 }
 
-.case:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
-.case { transition: transform 0.15s ease; }
-@media (prefers-reduced-motion: reduce) { .case { transition: none; } .case:hover { transform: none; } }
+/* Anneau de focus : sur le bouton (rectangle jamais découpé), au-dessus des voisines. */
+.case:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; z-index: 1; }
+@media (width >= 720px) {
+  .case:focus-visible { outline-width: 4px; outline-offset: 3px; }
+}
 
-.message { min-height: 1.5em; margin: 12px 0 0; text-align: center; color: var(--texte-doux); }
+/* Contrat de mouvement : une seule règle coupe toute animation et toute transition. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after, ::backdrop {
+    animation: none !important;
+    transition: none !important;
+  }
+}
 
+/* ---------- Messages, mot de fin, pied de page ---------- */
+.message { min-height: 1.5em; margin: 18px 0 0; text-align: center; font-weight: 700; }
+.message:not(:empty) { padding: 6px 10px; background: var(--bulle); border: 2px solid var(--encre); }
+
+/* Mot de fin : une grande bulle de dialogue, avec sa queue vers la planche. */
 .mot-de-fin {
-  margin-top: 12px; padding: 12px 16px; border-radius: var(--rayon);
-  background: var(--fond-2); border: 1px solid var(--accent); text-align: center;
+  position: relative; margin-top: 10px; margin-bottom: 26px; padding: 16px 26px;
+  background: var(--bulle); border: 4px solid var(--encre); border-radius: 50% / 38%;
+  box-shadow: 5px 5px 0 var(--encre);
+  text-align: center; font-weight: 900; font-size: 1.05rem;
+}
+.mot-de-fin::after {
+  content: ""; position: absolute; left: 14%; bottom: -15px; width: 22px; height: 22px;
+  background: var(--bulle); border: solid var(--encre); border-width: 0 4px 4px 0;
+  transform: skewX(-25deg) rotate(35deg);
+}
+@media (width < 720px) { .mot-de-fin { border-radius: 40px / 30px; } }
+
+/* Pied de page : le bas de planche, un filet d'encre et une rangée de trame. */
+.pied {
+  margin-top: 28px; padding: 16px 12px 8px; text-align: center; font-size: 0.75rem;
+  color: var(--encre-douce); border-top: 4px solid var(--encre);
+  background: radial-gradient(circle, var(--trame) 1.1px, transparent 1.6px) 0 0 / 7px 7px repeat-x;
+  background-size: 7px 8px;
 }
 
-.bandeau-apercu {
-  margin: 0 -16px; padding: 6px 16px; text-align: center; font-size: 0.85rem;
-  background: var(--a-ecrire); color: #2a0505; font-weight: 600;
-}
-
-.pied { margin-top: 24px; text-align: center; font-size: 0.75rem; color: var(--texte-doux); }
-
-.case.du-jour .icone { top: 10%; right: auto; left: 50%; transform: translateX(-50%); }
-
-/* La fenêtre d'une case ouverte */
+/* ---------- La fenêtre d'une case ouverte ---------- */
 .fenetre {
   width: min(560px, calc(100vw - 32px)); max-height: calc(100vh - 48px);
-  border: 0; border-radius: 18px; padding: 20px 22px 24px;
-  background: var(--ouverte); color: var(--ouverte-texte);
+  border: 4px solid var(--encre); border-radius: 0; padding: 20px 22px 24px;
+  background: var(--bulle); color: var(--encre); box-shadow: 8px 8px 0 var(--encre);
 }
-.fenetre::backdrop { background: rgb(5 10 20 / 0.7); }
+.fenetre::backdrop { background: rgb(10 10 10 / 0.65); }
 .fenetre-haut { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
-.fenetre-jour { margin: 0; font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; opacity: 0.75; }
-.fenetre h2 { margin: 6px 0 10px; font-size: 1.4rem; line-height: 1.25; }
+.fenetre-jour { margin: 0; font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--encre-douce); }
+.fenetre h2 { margin: 6px 0 10px; font-size: 1.4rem; font-weight: 900; line-height: 1.25; }
 .fenetre-corps p { margin: 0 0 10px; }
 .fermer {
-  font: inherit; font-size: 0.85rem; border: 1px solid currentColor; background: transparent; color: inherit;
-  border-radius: 999px; padding: 4px 12px; cursor: pointer;
+  font: inherit; font-size: 0.85rem; font-weight: 700; border: 2px solid var(--encre); background: var(--bulle); color: var(--encre);
+  padding: 3px 12px; cursor: pointer;
 }
-.lien { display: inline-block; margin-top: 4px; color: #8a4b00; font-weight: 600; }
-.a-ecrire-texte { color: #9b1c1c; font-weight: 600; }
+.fermer:focus-visible, .quiz-bouton:focus-visible, .lien:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.lien { display: inline-block; margin-top: 4px; color: var(--lien); font-weight: 700; }
+.a-ecrire-texte { color: var(--alerte); font-weight: 700; }
 
-.quiz-question { font-weight: 600; }
+.quiz-question { font-weight: 700; }
 .quiz-choix { display: flex; flex-wrap: wrap; gap: 8px; }
 .quiz-bouton {
-  font: inherit; min-width: 64px; padding: 8px 14px; border-radius: 10px; cursor: pointer;
-  border: 2px solid var(--ouverte-texte); background: #fff; color: var(--ouverte-texte);
+  font: inherit; min-width: 64px; padding: 8px 14px; cursor: pointer;
+  border: 2px solid var(--encre); background: var(--bulle); color: var(--encre);
 }
 .quiz-bouton:disabled { cursor: default; opacity: 0.6; }
-.quiz-bouton.bonne { opacity: 1; background: #1f7a3a; border-color: #1f7a3a; color: #fff; }
+.quiz-bouton.bonne { opacity: 1; background: var(--juste); border-color: var(--juste); color: var(--bulle); }
 .quiz-bouton.bonne::before { content: "✓ "; }
 .quiz-bouton.fausse { opacity: 1; text-decoration: line-through; }
 .quiz-resultat { min-height: 1.5em; margin-top: 10px; }

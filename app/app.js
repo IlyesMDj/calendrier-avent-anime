@@ -15,6 +15,15 @@ const formatComplet = new Intl.DateTimeFormat('fr-FR', { timeZone: 'Europe/Paris
 
 const $ = (id) => document.getElementById(id);
 
+/**
+ * Contrat de mouvement : vrai si la personne a demandé moins d'animations
+ * (réglage du système). Toute séquence minutée lit cette fonction avant de
+ * démarrer ; le CSS, lui, coupe déjà toutes les animations et transitions.
+ */
+function mouvementReduit() {
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
 const formatDate = new Intl.DateTimeFormat("fr-FR", { timeZone: "Europe/Paris", year: "numeric", month: "2-digit", day: "2-digit" });
 
 function memeJourParis(a, b) {
@@ -41,6 +50,12 @@ function creerCase(c, maintenant) {
   bouton.className = `case ${c.etat}${c.aEcrire ? ' a-ecrire' : ''}`;
   bouton.dataset.jour = c.jour;
 
+  // Le cadre dessine la case de manga (bords penchés, encre, trame) derrière le contenu,
+  // qui reste droit. Le bouton lui-même n'est jamais découpé : il porte l'anneau de focus.
+  const cadre = document.createElement('span');
+  cadre.className = 'cadre';
+  cadre.setAttribute('aria-hidden', 'true');
+
   const icone = document.createElement('span');
   icone.className = 'icone';
   icone.innerHTML = ICONES[c.etat];
@@ -54,7 +69,7 @@ function creerCase(c, maintenant) {
   const ouverture = new Date(c.ouverture);
   etiquette.textContent = c.etat === 'fermee' ? quandCourt(ouverture, maintenant) : MOTS[c.etat];
 
-  bouton.append(icone, numero, etiquette);
+  bouton.append(cadre, icone, numero, etiquette);
 
   if (c.etat === 'fermee') {
     bouton.setAttribute('aria-disabled', 'true');
