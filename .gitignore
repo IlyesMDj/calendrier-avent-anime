@@ -1,0 +1,21 @@
+# Secrets : jamais dans une sauvegarde
+.env
+.env.*
+*.pem
+*.key
+.cle
+.cle.*
+
+# Les textes des cases en clair restent sur cet ordinateur.
+# Seule leur version chiffree part sur GitHub (voir palier 4).
+contenu/cases.json
+
+# Fabrication et dependances
+_site/
+node_modules/
+dist/
+.venv/
+
+# Fichiers du systeme
+.DS_Store
+Thumbs.db

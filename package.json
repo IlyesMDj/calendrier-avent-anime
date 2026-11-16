@@ -1,0 +1,10 @@
+{
+  "name": "calendrier-avent",
+  "private": true,
+  "type": "module",
+  "description": "Calendrier de l'Avent en ligne, ouvert chaque jour par un robot GitHub Actions",
+  "scripts": {
+    "apercu": "node scripts/apercu.mjs",
+    "construire": "node scripts/construire.mjs"
+  }
+}
