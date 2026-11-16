@@ -88,8 +88,9 @@ function versionDuCode() {
  * Calcule ce que reçoit le visiteur à l'instant donné.
  * apercu = true : aperçu local, qui signale aussi les cases futures encore vides.
  */
-export async function preparerDonnees({ maintenant = new Date(), apercu = false } = {}) {
+export async function preparerDonnees({ maintenant = new Date(), apercu = false, mode = null } = {}) {
   const reglages = await lireJson('calendrier.json');
+  if (mode) reglages.mode = mode; // aperçu local seulement (refusé chez le robot)
   const problemes = [];
   const contenus = await lireContenus(problemes);
 
@@ -150,8 +151,8 @@ export async function preparerDonnees({ maintenant = new Date(), apercu = false 
 }
 
 /** Écrit le site complet dans le dossier de sortie. */
-export async function construire({ maintenant = new Date(), sortie = '_site', apercu = false } = {}) {
-  const resultat = await preparerDonnees({ maintenant, apercu });
+export async function construire({ maintenant = new Date(), sortie = "_site", apercu = false, mode = null } = {}) {
+  const resultat = await preparerDonnees({ maintenant, apercu, mode });
   const dossier = path.join(racine, sortie);
   await rm(dossier, { recursive: true, force: true });
   await mkdir(dossier, { recursive: true });
@@ -166,10 +167,11 @@ export function lireArguments(argv) {
     if (argv[i] === '--date') args.date = argv[++i];
     else if (argv[i] === '--apercu') args.apercu = true;
     else if (argv[i] === '--port') args.port = Number(argv[++i]);
+    else if (argv[i] === '--mode') args.mode = argv[++i];
   }
-  if (args.date && process.env.CI) {
-    // Le robot ne choisit jamais sa date : il prend l'heure réelle.
-    throw new Error('--date est réservé à l\'aperçu sur ton ordinateur, pas au robot.');
+  if ((args.date || args.mode) && process.env.CI) {
+    // Le robot ne choisit jamais sa date ni son mode : il prend l'heure réelle et calendrier.json.
+    throw new Error('--date et --mode sont réservés à l\'aperçu sur ton ordinateur, pas au robot.');
   }
   return args;
 }
@@ -186,7 +188,7 @@ const lanceDirectement = process.argv[1] && path.resolve(process.argv[1]).toLowe
 if (lanceDirectement) {
   const args = lireArguments(process.argv.slice(2));
   const maintenant = args.date ? lireDate(args.date) : new Date();
-  const r = await construire({ maintenant, apercu: args.apercu });
+  const r = await construire({ maintenant, apercu: args.apercu, mode: args.mode });
   console.log(`Site fabriqué dans ${path.relative(racine, r.dossier)}/ pour le ${maintenant.toLocaleString('fr-FR', { timeZone: 'Europe/Paris' })} (heure de Paris)`);
   resumer(r);
 }

@@ -3,6 +3,7 @@
 //   npm run apercu                          -> le calendrier aujourd'hui
 //   npm run apercu -- --date 2026-12-12     -> le calendrier tel qu'il sera le 12 décembre à midi
 //   npm run apercu -- --date 2026-12-12T00:05
+//   npm run apercu -- --date 2026-12-12 --mode normal   (ignore le mode soirée le temps de l'aperçu)
 //
 // Les données sont recalculées à chaque rechargement de la page :
 // une case modifiée dans contenu/cases.json apparaît tout de suite.
@@ -32,7 +33,7 @@ const serveur = http.createServer(async (req, res) => {
     const chemin = decodeURIComponent(new URL(req.url, 'http://localhost').pathname);
     if (chemin === '/donnees.json') {
       const maintenant = args.date ? lireDate(args.date) : new Date();
-      const r = await preparerDonnees({ maintenant, apercu: true });
+      const r = await preparerDonnees({ maintenant, apercu: true, mode: args.mode });
       resumer(r);
       res.writeHead(200, { 'content-type': types['.json'], 'cache-control': 'no-store' });
       res.end(JSON.stringify(r.donnees));
