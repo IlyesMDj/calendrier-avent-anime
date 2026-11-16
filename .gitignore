@@ -19,3 +19,6 @@ dist/
 # Fichiers du systeme
 .DS_Store
 Thumbs.db
+
+# Le diaporama reste sur cet ordinateur
+presentation/diapo.html
