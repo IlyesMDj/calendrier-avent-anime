@@ -1,0 +1,52 @@
+# Publie le calendrier sur GitHub Pages.
+# Il ne publie que les cases déjà ouvertes : les textes chiffrés sont ouverts
+# avec le secret CLE_CALENDRIER, puis seules les cases dues partent en ligne.
+# Si une étape échoue, rien n'est publié et la version précédente reste en ligne.
+
+name: Publier le calendrier
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  publier:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploiement.outputs.page_url }}
+    steps:
+      - name: Récupérer le projet
+        uses: actions/checkout@v5
+
+      - name: Installer Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+
+      - name: Fabriquer le site (cases ouvertes seulement)
+        env:
+          CLE_CALENDRIER: ${{ secrets.CLE_CALENDRIER }}
+        run: node scripts/construire.mjs
+
+      - name: Préparer GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Emballer le site
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: _site
+
+      - name: Mettre en ligne
+        id: deploiement
+        uses: actions/deploy-pages@v4
