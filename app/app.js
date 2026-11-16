@@ -219,65 +219,11 @@ function creerImpact(bouton) {
   return impact;
 }
 
-// L'affiche officielle, demandée à l'API Jikan (MyAnimeList) au moment d'ouvrir la case,
-// comme dans AppRecommandationAnimeRomance. Seules les cases ouvertes ont un numéro MyAnimeList.
-// Si Jikan ne répond pas, le pictogramme reste affiché.
-const affiches = new Map();
-let ouvertureCourante = 0;
-
-function chercherAffiche(mal) {
-  if (!affiches.has(mal)) {
-    affiches.set(mal, (async () => {
-      const arret = new AbortController();
-      const minuterie = setTimeout(() => arret.abort(), 5000);
-      try {
-        const rep = await fetch(`https://api.jikan.moe/v4/anime/${mal}`, { signal: arret.signal });
-        if (!rep.ok) return null;
-        const d = (await rep.json()).data;
-        const url = d?.images?.webp?.large_image_url || d?.images?.jpg?.large_image_url;
-        return typeof url === 'string' && url.startsWith('https://cdn.myanimelist.net/') ? url : null;
-      } catch {
-        return null;
-      } finally {
-        clearTimeout(minuterie);
-      }
-    })());
-  }
-  return affiches.get(mal);
-}
-
-async function afficherAffiche(c) {
-  const jeton = ++ouvertureCourante;
-  const zone = $('fenetre-affiche');
-  zone.replaceChildren();
-  zone.hidden = true;
-  const mal = c.contenu?.mal;
-  if (!Number.isInteger(mal)) return;
-  const directe = c.contenu?.affiche;
-  const url = typeof directe === 'string' && directe.startsWith('https://cdn.myanimelist.net/') ? directe : await chercherAffiche(mal);
-  if (!url || jeton !== ouvertureCourante) return; // pas d'affiche, ou une autre case a été ouverte entre-temps
-  const img = document.createElement('img');
-  img.alt = `Affiche de ${c.contenu.anime ?? 'l\'anime'}`;
-  img.referrerPolicy = 'no-referrer';
-  img.addEventListener('load', () => {
-    if (jeton !== ouvertureCourante) return;
-    zone.hidden = false;
-    $('fenetre-illustration').hidden = true;
-  }, { once: true });
-  img.src = url;
-  const credit = el('a', 'affiche-credit', 'Affiche : MyAnimeList');
-  credit.href = `https://myanimelist.net/anime/${mal}`;
-  credit.target = '_blank';
-  credit.rel = 'noopener noreferrer';
-  zone.append(img, credit);
-}
-
 function remplirFenetre(c) {
   $('fenetre-jour').textContent = [`${c.jour} décembre`, c.etat === 'du-jour' ? 'case du jour' : null].filter(Boolean).join(' · ');
   $('fenetre-anime').textContent = c.contenu?.anime ?? '';
   $('fenetre-illustration').textContent = c.contenu?.illustration ?? '';
   $('fenetre-illustration').hidden = false;
-  afficherAffiche(c);
   const corps = $('fenetre-corps');
   corps.replaceChildren();
 

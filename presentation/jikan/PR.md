@@ -1,3 +1,5 @@
+> **En pause.** Le calendrier n'affiche plus d'affiches venant de Jikan : cette proposition ne s'applique plus telle quelle.
+
 # Proposer le calendrier à la vitrine de Jikan (pas encore envoyé)
 
 Fichier visé : https://github.com/jikan-me/website/blob/master/src/data/showcase.js
