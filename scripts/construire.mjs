@@ -33,6 +33,7 @@ function aDuContenu(c) {
 /** Ne garde que les champs connus, pour ne rien envoyer par accident. */
 function nettoyer(c) {
   const propre = {};
+  if (c.anime) propre.anime = String(c.anime);
   if (c.titre) propre.titre = String(c.titre);
   if (c.texte) propre.texte = String(c.texte);
   if (c.lien?.url && /^https?:\/\//.test(c.lien.url)) {

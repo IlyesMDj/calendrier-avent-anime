@@ -102,7 +102,7 @@ function creerQuiz(quiz) {
 }
 
 function ouvrirCase(c) {
-  $('fenetre-jour').textContent = `${c.jour} décembre${c.etat === 'du-jour' ? ' · case du jour' : ''}`;
+  $('fenetre-jour').textContent = [`${c.jour} décembre`, c.contenu?.anime, c.etat === 'du-jour' ? 'case du jour' : null].filter(Boolean).join(' · ');
   const corps = $('fenetre-corps');
   corps.replaceChildren();
 
