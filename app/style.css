@@ -1,0 +1,112 @@
+:root {
+  --fond: #0f1b2d;
+  --fond-2: #16263d;
+  --texte: #f4efe6;
+  --texte-doux: #b9c2d0;
+  --accent: #f2b53c;
+  --accent-texte: #1d1405;
+  --ouverte: #e9e2d3;
+  --ouverte-texte: #1b2433;
+  --fermee: #1d3049;
+  --fermee-bord: #2d4566;
+  --a-ecrire: #ff7a7a;
+  --rayon: 14px;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background:
+    radial-gradient(1200px 600px at 50% -10%, #23395a 0%, transparent 60%),
+    var(--fond);
+  color: var(--texte);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  line-height: 1.5;
+  padding: 0 16px 32px;
+}
+
+.entete, main, .pied, .mot-de-fin { max-width: 860px; margin-inline: auto; }
+
+.entete { padding: 20px 0 8px; text-align: center; }
+h1 { margin: 0; font-size: clamp(1.5rem, 5vw, 2.4rem); line-height: 1.15; letter-spacing: -0.01em; }
+.sous-titre { margin: 4px 0 12px; color: var(--texte-doux); }
+
+.legende {
+  display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 16px;
+  list-style: none; margin: 0; padding: 0; font-size: 0.85rem; color: var(--texte-doux);
+}
+.legende li { display: inline-flex; align-items: center; gap: 6px; }
+.pastille {
+  display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 6px;
+}
+.pastille svg { width: 14px; height: 14px; }
+.pastille.ouverte { background: var(--ouverte); color: var(--ouverte-texte); }
+.pastille.du-jour { background: var(--accent); color: var(--accent-texte); border-radius: 50%; }
+.pastille.fermee { background: var(--fermee); color: var(--texte-doux); border: 1px solid var(--fermee-bord); }
+
+.grille {
+  list-style: none; margin: 16px 0 0; padding: 0;
+  display: grid; gap: 8px;
+  grid-template-columns: repeat(4, 1fr);
+}
+@media (min-width: 640px) {
+  .grille { grid-template-columns: repeat(6, 1fr); gap: 12px; }
+}
+
+.case {
+  position: relative; width: 100%; aspect-ratio: 1 / 0.9;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+  border-radius: var(--rayon); border: 1px solid transparent;
+  font: inherit; color: inherit; cursor: pointer; padding: 6px;
+}
+@media (min-width: 640px) { .case { aspect-ratio: 1; } }
+
+.case .numero { font-size: clamp(1.4rem, 6vw, 2rem); font-weight: 800; line-height: 1; }
+.case .etiquette { font-size: 0.7rem; line-height: 1.2; text-align: center; }
+.case .icone { position: absolute; top: 6px; right: 6px; width: 16px; height: 16px; }
+.case .icone svg { width: 100%; height: 100%; display: block; }
+
+.case.ouverte { background: var(--ouverte); color: var(--ouverte-texte); }
+.case.ouverte:hover { transform: translateY(-2px); }
+
+.case.du-jour {
+  background: var(--accent); color: var(--accent-texte);
+  outline: 3px solid var(--texte); outline-offset: 3px;
+  border-radius: 50% / 46%;
+}
+.case.du-jour .etiquette { font-weight: 700; }
+
+.case.fermee {
+  background: repeating-linear-gradient(135deg, var(--fermee) 0 10px, var(--fond-2) 10px 20px);
+  border-color: var(--fermee-bord); color: var(--texte-doux); cursor: not-allowed;
+}
+
+.case.a-ecrire { box-shadow: inset 0 0 0 3px var(--a-ecrire); }
+.case.a-ecrire::after {
+  content: "à écrire"; position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%);
+  background: var(--a-ecrire); color: #2a0505; font-size: 0.6rem; font-weight: 700;
+  padding: 0 5px; border-radius: 4px; white-space: nowrap;
+}
+
+.case:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+.case { transition: transform 0.15s ease; }
+@media (prefers-reduced-motion: reduce) { .case { transition: none; } .case:hover { transform: none; } }
+
+.message { min-height: 1.5em; margin: 12px 0 0; text-align: center; color: var(--texte-doux); }
+
+.mot-de-fin {
+  margin-top: 12px; padding: 12px 16px; border-radius: var(--rayon);
+  background: var(--fond-2); border: 1px solid var(--accent); text-align: center;
+}
+
+.bandeau-apercu {
+  margin: 0 -16px; padding: 6px 16px; text-align: center; font-size: 0.85rem;
+  background: var(--a-ecrire); color: #2a0505; font-weight: 600;
+}
+
+.pied { margin-top: 24px; text-align: center; font-size: 0.75rem; color: var(--texte-doux); }
+
+.case.du-jour .icone { top: 10%; right: auto; left: 50%; transform: translateX(-50%); }

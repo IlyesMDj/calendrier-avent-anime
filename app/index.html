@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Calendrier de l'Avent</title>
+  <meta name="description" content="Un calendrier de l'Avent en ligne : une case s'ouvre chaque jour, du 1er au 24 décembre.">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <p id="bandeau-apercu" class="bandeau-apercu" hidden></p>
+
+  <header class="entete">
+    <h1 id="titre">Calendrier de l'Avent</h1>
+    <p id="sous-titre" class="sous-titre"></p>
+    <ul class="legende" aria-label="Légende des cases">
+      <li><span class="pastille ouverte" data-icone="ouverte"></span>Ouverte</li>
+      <li><span class="pastille du-jour" data-icone="du-jour"></span>Case du jour</li>
+      <li><span class="pastille fermee" data-icone="fermee"></span>Pas encore</li>
+    </ul>
+  </header>
+
+  <p id="mot-de-fin" class="mot-de-fin" hidden></p>
+
+  <main>
+    <ol id="grille" class="grille" aria-label="Les 24 cases du calendrier"></ol>
+    <p id="message" class="message" role="status" aria-live="polite"></p>
+  </main>
+
+  <footer id="pied" class="pied"></footer>
+
+  <script src="app.js" defer></script>
+</body>
+</html>
