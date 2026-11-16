@@ -107,6 +107,8 @@ export async function preparerDonnees({ maintenant = new Date(), apercu = false 
     annee: reglages.annee,
     heureOuverture: reglages.heureOuverture,
     fini: etat.fini,
+    // Après le 24 : toutes les cases restent ouvertes, avec un mot de fin.
+    ...(etat.fini ? { motDeFin: reglages.motDeFin } : {}),
     version: versionDuCode(),
     genereLe: maintenant.toISOString(),
     cases,

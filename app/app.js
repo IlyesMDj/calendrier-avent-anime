@@ -141,6 +141,11 @@ function afficher(d) {
     $('bandeau-apercu').textContent = `Aperçu local, date simulée : ${quandLong(maintenant)}`;
   }
 
+  if (d.fini && d.motDeFin) {
+    $('mot-de-fin').hidden = false;
+    $('mot-de-fin').textContent = d.motDeFin;
+  }
+
   $('grille').replaceChildren(...d.cases.map((c) => creerCase(c, maintenant)));
 
   const pied = [`Cases ouvertes chaque jour à ${d.heureOuverture}, heure de Paris`];
