@@ -3,5 +3,10 @@
   "sousTitre": "Un anime par jour jusqu'à Noël. Ton niveau de puissance augmente chaque matin.",
   "annee": 2026,
   "heureOuverture": "00:00",
-  "motDeFin": "Fin de la saison 1. Les 24 cases restent ouvertes pour le rewatch. Saison 2 l'an prochain, si le studio est d'accord."
+  "motDeFin": "Fin de la saison 1. Les 24 cases restent ouvertes pour le rewatch. Saison 2 l'an prochain, si le studio est d'accord.",
+  "mode": "normal",
+  "soiree": {
+    "depart": "2026-11-16T20:30:00+01:00",
+    "minutesEntreCases": 5
+  }
 }

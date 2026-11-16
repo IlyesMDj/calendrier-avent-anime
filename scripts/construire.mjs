@@ -8,6 +8,7 @@
 import { readFile, writeFile, mkdir, rm, cp } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { execSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { calculerEtat, lireDate } from './temps.mjs';
@@ -129,13 +130,20 @@ export async function preparerDonnees({ maintenant = new Date(), apercu = false 
     sousTitre: reglages.sousTitre,
     annee: reglages.annee,
     heureOuverture: reglages.heureOuverture,
+    mode: etat.mode,
+    rythme: etat.mode === 'soiree'
+      ? `Mode soirée : une case toutes les ${reglages.soiree.minutesEntreCases ?? 5} minutes`
+      : `Une case par jour à ${reglages.heureOuverture ?? '00:00'}, heure de Paris`,
     fini: etat.fini,
     // Après le 24 : toutes les cases restent ouvertes, avec un mot de fin.
     ...(etat.fini ? { motDeFin: reglages.motDeFin } : {}),
     version: versionDuCode(),
-    genereLe: maintenant.toISOString(),
     cases,
   };
+  // L'empreinte résume ce que voit le visiteur (hors date de fabrication) :
+  // si elle n'a pas changé, le robot n'a rien à republier.
+  donnees.empreinte = createHash('sha256').update(JSON.stringify(donnees)).digest('hex').slice(0, 16);
+  donnees.genereLe = maintenant.toISOString();
   if (apercu) donnees.apercu = { date: maintenant.toISOString() };
 
   return { donnees, aEcrire, problemes };

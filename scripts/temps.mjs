@@ -53,22 +53,42 @@ export function lireDate(texte) {
  * Aucun état n'est gardé d'un passage à l'autre : le résultat ne dépend que de l'heure.
  */
 export function calculerEtat(reglages, maintenant) {
+  const mode = reglages.mode ?? 'normal';
   const annee = reglages.annee;
-  const [hh, mm] = (reglages.heureOuverture ?? '00:00').split(':').map(Number);
+  let ouvertures;
+  let fin;
 
-  const ouvertures = Array.from({ length: 24 }, (_, i) => instantDeParis(annee, 12, i + 1, hh, mm));
-  const fin = instantDeParis(annee, 12, 25, hh, mm);
+  if (mode === 'soiree') {
+    // Mode soirée : une case toutes les N minutes, dans l'ordre, à partir de l'instant de départ.
+    const depart = new Date(reglages.soiree?.depart);
+    const minutes = Number(reglages.soiree?.minutesEntreCases ?? 5);
+    if (Number.isNaN(depart.getTime())) throw new Error('Mode soirée : « soiree.depart » est absent ou illisible dans calendrier.json.');
+    if (!(minutes >= 1)) throw new Error('Mode soirée : « soiree.minutesEntreCases » doit valoir au moins 1.');
+    ouvertures = Array.from({ length: 24 }, (_, i) => new Date(depart.getTime() + i * minutes * 60000));
+    fin = new Date(depart.getTime() + 24 * minutes * 60000);
+  } else if (mode === 'normal') {
+    const [hh, mm] = (reglages.heureOuverture ?? '00:00').split(':').map(Number);
+    ouvertures = Array.from({ length: 24 }, (_, i) => instantDeParis(annee, 12, i + 1, hh, mm));
+    fin = instantDeParis(annee, 12, 25, hh, mm);
+  } else {
+    throw new Error(`Mode inconnu dans calendrier.json : « ${mode} » (attendu : normal ou soiree).`);
+  }
 
   const ouverte = ouvertures.map((o) => maintenant >= o);
   const fini = maintenant >= fin;
 
-  // Au plus une case du jour, et aucune avant le 1er décembre ni après le 24.
+  // Au plus une case du jour, et aucune avant la première ouverture ni après la dernière.
   let duJour = null;
   if (!fini) {
-    const p = heureDeParis(maintenant);
-    if (p.annee === annee && p.mois === 12 && p.jour >= 1 && p.jour <= 24 && ouverte[p.jour - 1]) {
-      duJour = p.jour;
+    if (mode === 'soiree') {
+      const derniere = ouverte.lastIndexOf(true);
+      if (derniere >= 0) duJour = derniere + 1;
+    } else {
+      const p = heureDeParis(maintenant);
+      if (p.annee === annee && p.mois === 12 && p.jour >= 1 && p.jour <= 24 && ouverte[p.jour - 1]) {
+        duJour = p.jour;
+      }
     }
   }
-  return { ouvertures, ouverte, fini, fin, duJour };
+  return { mode, ouvertures, ouverte, fini, fin, duJour };
 }
