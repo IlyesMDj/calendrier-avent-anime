@@ -11,6 +11,7 @@ import { execSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { calculerEtat, lireDate } from './temps.mjs';
+import { FICHIER_CLAIR, FICHIER_CHIFFRE, lireCle, dechiffrer } from './chiffrer.mjs';
 
 export const racine = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -18,11 +19,32 @@ async function lireJson(relatif) {
   return JSON.parse(await readFile(path.join(racine, relatif), 'utf8'));
 }
 
-/** Les 24 textes, rangés hors des sauvegardes dans contenu/cases.json. */
-async function lireContenus() {
-  const fichier = path.join(racine, 'contenu', 'cases.json');
-  if (!existsSync(fichier)) return [];
-  const brut = JSON.parse(await readFile(fichier, 'utf8'));
+/**
+ * Les 24 textes. Sur ton ordinateur : contenu/cases.json, en clair, jamais sauvegardé.
+ * Chez le robot : contenu/cases.chiffre.json, ouvert avec le secret CLE_CALENDRIER.
+ */
+async function lireContenus(problemes) {
+  const clair = path.join(racine, FICHIER_CLAIR);
+  const chiffre = path.join(racine, FICHIER_CHIFFRE);
+  let texte;
+  if (existsSync(clair)) {
+    texte = await readFile(clair, 'utf8');
+    if (existsSync(chiffre)) {
+      const cle = lireCle(racine);
+      let aJour = false;
+      try {
+        aJour = cle && dechiffrer(JSON.parse(await readFile(chiffre, 'utf8')), cle) === texte;
+      } catch { /* clé différente ou fichier abîmé : signalé juste après */ }
+      if (!aJour) problemes.push('les textes ont changé depuis le dernier chiffrement : lance « npm run chiffrer » avant de sauvegarder');
+    }
+  } else if (existsSync(chiffre)) {
+    const cle = lireCle(racine);
+    if (!cle) throw new Error('Clé absente : ni secret CLE_CALENDRIER, ni fichier .cle. Le site n\'est pas fabriqué.');
+    texte = dechiffrer(JSON.parse(await readFile(chiffre, 'utf8')), cle);
+  } else {
+    return [];
+  }
+  const brut = JSON.parse(texte);
   return Array.isArray(brut) ? brut : brut.cases ?? [];
 }
 
@@ -67,10 +89,10 @@ function versionDuCode() {
  */
 export async function preparerDonnees({ maintenant = new Date(), apercu = false } = {}) {
   const reglages = await lireJson('calendrier.json');
-  const contenus = await lireContenus();
+  const problemes = [];
+  const contenus = await lireContenus(problemes);
 
   const parJour = new Map();
-  const problemes = [];
   for (const c of contenus) {
     if (!Number.isInteger(c.jour) || c.jour < 1 || c.jour > 24) {
       problemes.push(`une case a un jour invalide : ${JSON.stringify(c.jour)}`);
