@@ -64,6 +64,7 @@ function nettoyer(c) {
   const propre = {};
   if (c.anime) propre.anime = String(c.anime);
   if (c.illustration) propre.illustration = String(c.illustration).slice(0, 24);
+  if (Number.isInteger(c.mal) && c.mal > 0) propre.mal = c.mal;
   if (c.titre) propre.titre = String(c.titre);
   if (c.texte) propre.texte = String(c.texte);
   if (c.lien?.url && /^https?:\/\//.test(c.lien.url)) {
