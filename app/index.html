@@ -5,14 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Calendrier de l'Avent</title>
   <meta name="description" content="Un calendrier de l'Avent en ligne : une case s'ouvre chaque jour, du 1er au 24 décembre.">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bangers&amp;family=Zen+Maru+Gothic:wght@500;700;900&amp;display=swap">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <p id="bandeau-apercu" class="bandeau-apercu" hidden></p>
 
   <header class="entete">
-    <h1 id="titre">Calendrier de l'Avent</h1>
-    <p id="sous-titre" class="sous-titre"></p>
+    <div class="bloc-titre">
+      <span class="onomatopee" lang="ja" aria-hidden="true">ドン！</span>
+      <h1 id="titre">Calendrier de l'Avent</h1>
+      <p id="sous-titre" class="sous-titre"></p>
+    </div>
     <ul class="legende" aria-label="Légende des cases">
       <li><span class="pastille ouverte" data-icone="ouverte"></span>Ouverte</li>
       <li><span class="pastille du-jour" data-icone="du-jour"></span>Case du jour</li>
@@ -34,9 +38,20 @@
       <p id="fenetre-jour" class="fenetre-jour"></p>
       <button type="button" class="fermer" id="fermer" aria-label="Fermer la case">Fermer</button>
     </div>
+    <p id="fenetre-anime" class="fenetre-anime"></p>
     <h2 id="fenetre-titre"></h2>
     <div id="fenetre-corps" class="fenetre-corps"></div>
   </dialog>
+
+  <!-- L'impact joué au clic sur une case ouverte (flash, lignes de vitesse, onomatopée).
+       Décoratif : copié dans la page le temps de l'animation, puis retiré. -->
+  <template id="modele-impact">
+    <div class="impact" aria-hidden="true">
+      <div class="impact-flash"></div>
+      <div class="impact-lignes"></div>
+      <p class="impact-mot" lang="ja"></p>
+    </div>
+  </template>
 
   <script src="app.js" defer></script>
 </body>
