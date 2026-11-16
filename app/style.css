@@ -24,6 +24,8 @@
   --police-titre: "Bangers", "Impact", "Arial Black", system-ui, sans-serif;
   --police-texte: "Zen Maru Gothic", system-ui, "Segoe UI", "Yu Gothic", "Meiryo", sans-serif;
   --police-kana: "Zen Maru Gothic", "Yu Gothic", "Meiryo", "Hiragino Sans", sans-serif;
+  /* Onomatopées et nom de l'anime : Bangers pour les lettres, Zen Maru Gothic pour les kana */
+  --police-cri: "Bangers", "Zen Maru Gothic", "Yu Gothic", "Meiryo", "Impact", sans-serif;
   /* Mise en page */
   --page: 1080px;
   --marge: 12px;
@@ -338,6 +340,23 @@ h1 {
 }
 .case:not(.fermee):hover .cadre { translate: 0 -3px; }
 
+/* Refus d'une case fermée : la case tremble et la bandelette se soulève (classe posée au clic). */
+.case.refus { animation: tremble 0.45s ease-in-out; }
+.case.refus .cadre::after { animation: talisman 0.45s ease-in-out; }
+@keyframes tremble {
+  15% { translate: -6px 0; rotate: -1.5deg; }
+  30% { translate: 5px 0; rotate: 1.2deg; }
+  45% { translate: -4px 0; rotate: -0.8deg; }
+  60% { translate: 3px 0; rotate: 0.5deg; }
+  75% { translate: -1px 0; rotate: 0deg; }
+}
+@keyframes talisman {
+  20% { rotate: -5deg; }
+  40% { rotate: 13deg; }
+  60% { rotate: 2deg; }
+  80% { rotate: 9deg; }
+}
+
 /* Pastille « à écrire » : un autocollant penché, avec ombre dure. */
 .case.a-ecrire::after {
   content: "à écrire";
@@ -366,7 +385,19 @@ h1 {
 
 /* ---------- Messages, mot de fin, pied de page ---------- */
 .message { min-height: 1.5em; margin: 18px 0 0; text-align: center; font-weight: 700; }
-.message:not(:empty) { padding: 6px 10px; background: var(--bulle); border: 2px solid var(--encre); }
+/* Le message reste collé en bas de l'écran tant que la planche est visible : la réplique
+   d'une case fermée se lit sans faire défiler la page. */
+.message:not(:empty) {
+  position: sticky; bottom: 22px; z-index: 5; width: fit-content; max-width: 100%; margin-inline: auto;
+  padding: 8px 16px; background: var(--bulle); border: 3px solid var(--encre); border-radius: 18px / 14px;
+  box-shadow: 4px 4px 0 var(--encre);
+}
+/* La queue de la bulle, pointée vers la planche. */
+.message:not(:empty)::after {
+  content: ""; position: absolute; left: 26px; bottom: -11px; width: 16px; height: 16px;
+  background: var(--bulle); border: solid var(--encre); border-width: 0 3px 3px 0;
+  transform: skewX(-25deg) rotate(35deg);
+}
 
 /* Mot de fin : une grande bulle de dialogue, avec sa queue vers la planche. */
 .mot-de-fin {
@@ -390,33 +421,174 @@ h1 {
   background-size: 7px 8px;
 }
 
-/* ---------- La fenêtre d'une case ouverte ---------- */
+/* ---------- La fenêtre d'une case ouverte : une page de manga ----------
+   Cadre d'encre, trame collée en haut à droite, titre en bandeau, texte en bulles et en cartouches. */
 .fenetre {
-  width: min(560px, calc(100vw - 32px)); max-height: calc(100vh - 48px);
-  border: 4px solid var(--encre); border-radius: 0; padding: 20px 22px 24px;
-  background: var(--bulle); color: var(--encre); box-shadow: 8px 8px 0 var(--encre);
+  width: min(580px, calc(100vw - 24px)); max-height: calc(100dvh - 24px);
+  overflow-y: auto; overscroll-behavior: contain;
+  border: 5px solid var(--encre); border-radius: 0; padding: 16px 18px 22px;
+  background:
+    radial-gradient(circle, var(--trame-legere) 1px, transparent 1.5px) 0 0 / 7px 7px,
+    var(--papier);
+  color: var(--encre); box-shadow: 9px 9px 0 var(--encre), inset 0 0 0 3px var(--papier), inset 0 0 0 5px var(--encre);
+  animation: page-entree 0.32s cubic-bezier(0.2, 1.3, 0.4, 1) both;
 }
-.fenetre::backdrop { background: rgb(10 10 10 / 0.65); }
+@media (width >= 720px) { .fenetre { padding: 20px 26px 26px; } }
+.fenetre::backdrop {
+  background:
+    radial-gradient(circle, rgb(255 255 255 / 0.14) 1.2px, transparent 1.8px) 0 0 / 8px 8px,
+    rgb(10 10 10 / 0.72);
+  animation: fond-entree 0.25s ease-out both;
+}
+/* Un coin de trame collée sur la page. */
+.fenetre::before {
+  content: ""; position: absolute; top: 0; right: 0; width: 45%; height: 130px; pointer-events: none;
+  background: radial-gradient(circle, var(--trame) 1.4px, transparent 2px) 0 0 / 8px 8px;
+  -webkit-mask-image: linear-gradient(225deg, #000, transparent 70%); mask-image: linear-gradient(225deg, #000, transparent 70%);
+}
+.fenetre > * { position: relative; }
+@keyframes page-entree {
+  0% { opacity: 0; scale: 0.82; rotate: -2.5deg; translate: 0 18px; }
+  100% { opacity: 1; scale: 1; rotate: 0deg; translate: 0 0; }
+}
+@keyframes fond-entree { from { opacity: 0; } to { opacity: 1; } }
+
 .fenetre-haut { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
-.fenetre-jour { margin: 0; font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--encre-douce); }
-.fenetre h2 { margin: 6px 0 10px; font-size: 1.4rem; font-weight: 900; line-height: 1.25; }
-.fenetre-corps p { margin: 0 0 10px; }
-.fermer {
-  font: inherit; font-size: 0.85rem; font-weight: 700; border: 2px solid var(--encre); background: var(--bulle); color: var(--encre);
-  padding: 3px 12px; cursor: pointer;
+/* La date : un petit cartouche noir. */
+.fenetre-jour {
+  margin: 0; padding: 2px 14px; background: var(--encre); color: var(--bulle);
+  font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+  clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%);
 }
-.fermer:focus-visible, .quiz-bouton:focus-visible, .lien:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
-.lien { display: inline-block; margin-top: 4px; color: var(--lien); font-weight: 700; }
+/* Le nom de l'anime : un grand bandeau-titre, comme sur la couverture d'un volume. */
+.fenetre-anime {
+  margin: 14px 0 6px; padding: 8px 14px 6px;
+  background: var(--jaune); border: 4px solid var(--encre); box-shadow: 5px 5px 0 var(--encre);
+  font-family: var(--police-cri); font-weight: 400; font-synthesis: none;
+  font-size: clamp(2rem, 8vw, 3.2rem); line-height: 1.02; letter-spacing: 0.03em;
+  color: var(--encre); text-shadow: 3px 3px 0 var(--bulle);
+  rotate: -1deg; overflow-wrap: anywhere;
+}
+.fenetre-anime:empty { display: none; }
+/* Le titre de la case : un cartouche de légende. */
+.fenetre h2 {
+  display: inline-block; max-width: 100%; margin: 14px 0 12px; padding: 4px 12px;
+  background: var(--bulle); border: 3px solid var(--encre); box-shadow: 3px 3px 0 var(--encre);
+  font-size: 1.3rem; font-weight: 900; line-height: 1.25; overflow-wrap: anywhere;
+}
+/* Le texte : une bulle de dialogue par paragraphe, avec une petite queue. */
+.fenetre-corps > p {
+  position: relative; margin: 0 0 16px; padding: 10px 14px;
+  background: var(--bulle); border: 2.5px solid var(--encre); border-radius: 18px / 14px;
+}
+.fenetre-corps > p::after {
+  content: ""; position: absolute; left: 22px; bottom: -9px; width: 14px; height: 14px;
+  background: var(--bulle); border: solid var(--encre); border-width: 0 2.5px 2.5px 0;
+  transform: skewX(-25deg) rotate(35deg);
+}
+.fenetre-corps > p:nth-of-type(even) { margin-inline-start: 16px; }
+.fenetre-corps > p:nth-of-type(even)::after { left: auto; right: 26px; }
+.fenetre-corps > .a-ecrire-texte {
+  background: repeating-linear-gradient(135deg, var(--bulle) 0 8px, var(--papier-2) 8px 16px);
+  border-style: dashed; border-width: 3px; border-radius: 0; text-align: center;
+}
+.fenetre-corps > .a-ecrire-texte::after { display: none; }
 .a-ecrire-texte { color: var(--alerte); font-weight: 700; }
 
-.quiz-question { font-weight: 700; }
-.quiz-choix { display: flex; flex-wrap: wrap; gap: 8px; }
-.quiz-bouton {
-  font: inherit; min-width: 64px; padding: 8px 14px; cursor: pointer;
-  border: 2px solid var(--encre); background: var(--bulle); color: var(--encre);
+/* Boutons façon manga : aplat, trait d'encre, ombre dure qui s'écrase au clic. */
+.fermer, .quiz-bouton {
+  font: inherit; font-weight: 700; color: var(--encre); background: var(--bulle);
+  border: 3px solid var(--encre); box-shadow: 3px 3px 0 var(--encre); cursor: pointer;
+  transition: translate 0.08s ease, box-shadow 0.08s ease;
 }
-.quiz-bouton:disabled { cursor: default; opacity: 0.6; }
-.quiz-bouton.bonne { opacity: 1; background: var(--juste); border-color: var(--juste); color: var(--bulle); }
+.fermer { font-size: 0.85rem; padding: 3px 14px; background: var(--accent); color: var(--accent-texte); }
+.fermer:hover, .quiz-bouton:hover:not(:disabled) { background: var(--jaune); color: var(--encre); }
+.fermer:active, .quiz-bouton:active:not(:disabled) { translate: 3px 3px; box-shadow: 0 0 0 var(--encre); }
+.fermer:focus-visible, .quiz-bouton:focus-visible, .lien:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+
+/* Le lien : un appel à l'action en gros aplat avec ombre dure. */
+.lien {
+  display: inline-block; max-width: 100%; margin-top: 6px; padding: 8px 18px;
+  background: var(--jaune); color: var(--encre); text-decoration: none; overflow-wrap: anywhere;
+  font-family: var(--police-titre); font-size: 1.25rem; letter-spacing: 0.04em; line-height: 1.2;
+  border: 3px solid var(--encre); box-shadow: 4px 4px 0 var(--encre);
+  transition: translate 0.08s ease, box-shadow 0.08s ease;
+}
+.lien::after { content: " ▶"; font-size: 0.8em; }
+.lien:hover { background: var(--accent); color: var(--accent-texte); }
+.lien:active { translate: 4px 4px; box-shadow: 0 0 0 var(--encre); }
+
+/* Le quiz : une case à part, avec sa propre trame. */
+.quiz {
+  margin: 4px 0 16px; padding: 12px 14px;
+  background: radial-gradient(circle, var(--trame) 1px, transparent 1.5px) 0 0 / 6px 6px, var(--papier-2);
+  border: 3px solid var(--encre);
+}
+.quiz-question { margin: 0 0 10px; font-weight: 900; }
+.quiz-choix { display: flex; flex-wrap: wrap; gap: 10px; }
+.quiz-bouton { min-width: 64px; padding: 8px 14px; }
+.quiz-bouton:disabled { cursor: default; box-shadow: 2px 2px 0 var(--encre); }
+/* Les états se lisent sans la couleur : ✓ et fond plein pour la bonne, ✗ et texte barré pour la fausse. */
+.quiz-bouton:disabled:not(.bonne):not(.fausse) { opacity: 0.6; }
+.quiz-bouton.bonne { background: var(--juste); color: var(--bulle); }
 .quiz-bouton.bonne::before { content: "✓ "; }
-.quiz-bouton.fausse { opacity: 1; text-decoration: line-through; }
-.quiz-resultat { min-height: 1.5em; margin-top: 10px; }
+.quiz-bouton.fausse {
+  background: repeating-linear-gradient(135deg, var(--bulle) 0 6px, var(--papier-2) 6px 12px);
+  color: var(--alerte); text-decoration: line-through; text-decoration-thickness: 2px; border-style: dashed;
+}
+.quiz-bouton.fausse::before { content: "✗ "; display: inline-block; text-decoration: none; }
+.quiz-resultat { min-height: 1.5em; margin: 12px 0 0; font-weight: 700; }
+
+/* ---------- L'impact : flash, lignes de vitesse et onomatopée, le temps d'un clic ----------
+   Posé par app.js au-dessus de la page, puis retiré à l'ouverture de la fenêtre.
+   --x, --y : centre de la case cliquée ; --mot-y : hauteur de l'onomatopée ; --duree : durée totale. */
+.impact {
+  --x: 50vw; --y: 50vh; --mot-y: 50vh; --duree: 550ms;
+  position: fixed; inset: 0; z-index: 50; overflow: hidden; pointer-events: none;
+}
+.impact > * { position: absolute; margin: 0; }
+.impact-flash {
+  inset: 0;
+  background: radial-gradient(circle at var(--x) var(--y), var(--bulle) 0 10%, var(--jaune) 32%, transparent 72%);
+  animation: impact-flash var(--duree) ease-out both;
+}
+/* Lignes de vitesse : deux éventails de traits d'encre de pas différents, vides au centre. */
+.impact-lignes {
+  inset: 0;
+  background:
+    repeating-conic-gradient(from 0deg at var(--x) var(--y), var(--encre) 0 0.9deg, transparent 0.9deg 5.5deg),
+    repeating-conic-gradient(from 2.3deg at var(--x) var(--y), var(--encre) 0 0.45deg, transparent 0.45deg 3.7deg);
+  -webkit-mask-image: radial-gradient(circle at var(--x) var(--y), transparent 0 16%, #000 58%);
+  mask-image: radial-gradient(circle at var(--x) var(--y), transparent 0 16%, #000 58%);
+  transform-origin: var(--x) var(--y);
+  animation: impact-lignes var(--duree) ease-out both;
+}
+.impact-mot {
+  left: 50%; top: var(--mot-y);
+  translate: -50% -50%; rotate: -8deg;
+  font-family: var(--police-cri); font-weight: 900; font-synthesis: none;
+  font-size: clamp(4rem, 15vw, 10rem); line-height: 1; white-space: nowrap;
+  color: var(--accent); -webkit-text-stroke: 4px var(--encre); paint-order: stroke fill;
+  text-shadow: 6px 6px 0 var(--encre);
+  animation: impact-mot var(--duree) ease-out both;
+}
+@keyframes impact-flash {
+  0% { opacity: 0; }
+  12% { opacity: 1; }
+  55% { opacity: 0.85; }
+  100% { opacity: 0; }
+}
+@keyframes impact-lignes {
+  0% { opacity: 0; scale: 1.35; }
+  15% { opacity: 1; }
+  70% { opacity: 1; scale: 1; }
+  100% { opacity: 0; scale: 0.97; }
+}
+@keyframes impact-mot {
+  0% { opacity: 0; scale: 2.6; }
+  22% { opacity: 1; scale: 0.9; }
+  36% { scale: 1.07; }
+  50% { scale: 1; }
+  85% { opacity: 1; }
+  100% { opacity: 0; scale: 1.1; }
+}

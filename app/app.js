@@ -9,7 +9,28 @@ const ICONES = {
 
 const MOTS = { ouverte: 'Ouverte', 'du-jour': 'Aujourd\'hui', fermee: 'Pas encore' };
 
+// Répliques d'une case fermée, tirées au hasard (jamais deux fois de suite la même).
+// {date} est remplacé par la date d'ouverture de la case, par exemple « 13 décembre ».
+// Ajoutez, retirez ou réécrivez des lignes librement : gardez {date} dans chacune.
+const REPLIQUES_FERMEES = [
+  'Ton niveau de puissance est insuffisant. Reviens le {date}.',
+  'Ce sceau tient bon jusqu\'au {date}. Même hurler pendant trois épisodes n\'y changera rien.',
+  'Le prochain épisode sort le {date}. Pas de fuite, pas de spoiler, pas de chance.',
+  'Arc de remplissage en cours : il ne se passe rien. Le vrai épisode arrive le {date}.',
+  'Le talisman refuse. Il a l\'air très sérieux. Reviens le {date}.',
+  'Tu forces la case avant le {date} ? Il ne s\'est rien passé, comme dans un épisode récap.',
+  'Cette case dort sous un sceau, et son réveil est prévu le {date}. Le héros, lui, se serait déjà réveillé en retard.',
+  'Accès refusé. Il faut d\'abord un entraînement de montage en flashback, puis revenir le {date}.',
+  'Un mystérieux inconnu murmure : « pas avant le {date} ». Il disparaît dans la fumée.',
+];
+
+// L'impact qui précède l'ouverture d'une case : une onomatopée tirée au hasard,
+// et sa durée en millisecondes (le CSS la reçoit dans --duree).
+const ONOMATOPEES = ['ドン！', 'バーン！', 'ズドン！', 'BAM !'];
+const DUREE_IMPACT = 550;
+
 const formatJour = new Intl.DateTimeFormat('fr-FR', { timeZone: 'Europe/Paris', day: 'numeric', month: 'short' });
+const formatJourLong = new Intl.DateTimeFormat('fr-FR', { timeZone: 'Europe/Paris', day: 'numeric', month: 'long' });
 const formatHeure = new Intl.DateTimeFormat('fr-FR', { timeZone: 'Europe/Paris', hour: '2-digit', minute: '2-digit' });
 const formatComplet = new Intl.DateTimeFormat('fr-FR', { timeZone: 'Europe/Paris', weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' });
 
@@ -43,6 +64,28 @@ function annoncer(texte) {
   $('message').textContent = texte;
 }
 
+let derniereReplique = -1;
+
+/** Une réplique de refus pour une case fermée, avec sa date d'ouverture (heure de Paris). */
+function repliqueFermee(ouverture, maintenant) {
+  const n = REPLIQUES_FERMEES.length;
+  // Tirage parmi les répliques autres que la précédente.
+  let i = Math.floor(Math.random() * (derniereReplique >= 0 && n > 1 ? n - 1 : n));
+  if (derniereReplique >= 0 && n > 1 && i >= derniereReplique) i += 1;
+  derniereReplique = i;
+  const date = formatJourLong.format(ouverture)
+    + (memeJourParis(ouverture, maintenant) ? ` à ${formatHeure.format(ouverture)}` : '');
+  const modele = REPLIQUES_FERMEES[i];
+  return modele.includes('{date}') ? modele.replaceAll('{date}', date) : `${modele} Rendez-vous le ${date}.`;
+}
+
+/** La case fermée tremble : on relance l'animation CSS (coupée par la règle de mouvement réduit). */
+function faireTrembler(bouton) {
+  bouton.classList.remove('refus');
+  void bouton.offsetWidth; // oblige le navigateur à repartir du début de l'animation
+  bouton.classList.add('refus');
+}
+
 function creerCase(c, maintenant) {
   const li = document.createElement('li');
   const bouton = document.createElement('button');
@@ -74,11 +117,17 @@ function creerCase(c, maintenant) {
   if (c.etat === 'fermee') {
     bouton.setAttribute('aria-disabled', 'true');
     bouton.setAttribute('aria-label', `Case ${c.jour}, pas encore disponible. Elle s'ouvrira ${quandLong(ouverture)}.`);
-    bouton.addEventListener('click', () => annoncer(`La case ${c.jour} n'est pas encore disponible. Elle s'ouvrira ${quandLong(ouverture)}.`));
+    bouton.addEventListener('click', () => {
+      annoncer(repliqueFermee(ouverture, maintenant));
+      faireTrembler(bouton);
+    });
+    bouton.addEventListener('animationend', (e) => {
+      if (e.target === bouton && e.animationName === 'tremble') bouton.classList.remove('refus');
+    });
   } else {
     const mot = c.etat === 'du-jour' ? 'case du jour' : 'ouverte';
     bouton.setAttribute('aria-label', `Case ${c.jour}, ${mot}${c.aEcrire ? ', contenu à écrire' : ''}.`);
-    bouton.addEventListener('click', () => ouvrirCase(c));
+    bouton.addEventListener('click', () => ouvrirCase(c, bouton));
   }
 
   li.append(bouton);
@@ -116,8 +165,56 @@ function creerQuiz(quiz) {
   return bloc;
 }
 
-function ouvrirCase(c) {
-  $('fenetre-jour').textContent = [`${c.jour} décembre`, c.contenu?.anime, c.etat === 'du-jour' ? 'case du jour' : null].filter(Boolean).join(' · ');
+/* ---------- Ouverture d'une case ----------
+   Trois états : « repos » → « impact » (l'animation joue) → « fenetre » (dialogue ouvert) → « repos ».
+   Un clic qui arrive hors de l'état « repos » est ignoré. En mouvement réduit, pas d'impact :
+   la fenêtre s'ouvre tout de suite. L'enchaînement repose sur un minuteur, jamais sur
+   animationend, qui n'arrive pas quand les animations sont coupées. */
+let etatOuverture = 'repos';
+let caseOrigine = null; // le bouton qui a lancé l'ouverture : il reprend le focus à la fermeture
+
+function ouvrirCase(c, bouton) {
+  if (etatOuverture !== 'repos' || $('fenetre').open) return;
+  caseOrigine = bouton;
+  remplirFenetre(c);
+  if (mouvementReduit()) {
+    montrerFenetre();
+    return;
+  }
+  etatOuverture = 'impact';
+  const impact = creerImpact(bouton);
+  document.body.append(impact);
+  setTimeout(() => {
+    montrerFenetre();
+    impact.remove();
+  }, DUREE_IMPACT);
+}
+
+function montrerFenetre() {
+  etatOuverture = 'fenetre';
+  if (!$('fenetre').open) $('fenetre').showModal();
+}
+
+/** L'impact (flash, lignes de vitesse, onomatopée), centré sur la case cliquée. */
+function creerImpact(bouton) {
+  const impact = $('modele-impact').content.firstElementChild.cloneNode(true);
+  const r = bouton.getBoundingClientRect();
+  const x = r.left + r.width / 2;
+  const y = r.top + r.height / 2;
+  impact.style.setProperty('--x', `${Math.round(x)}px`);
+  impact.style.setProperty('--y', `${Math.round(y)}px`);
+  // L'onomatopée suit la hauteur de la case sans sortir de l'écran.
+  impact.style.setProperty('--mot-y', `${Math.round(Math.min(Math.max(y, innerHeight * 0.25), innerHeight * 0.75))}px`);
+  impact.style.setProperty('--duree', `${DUREE_IMPACT}ms`);
+  const mot = impact.querySelector('.impact-mot');
+  mot.textContent = ONOMATOPEES[Math.floor(Math.random() * ONOMATOPEES.length)];
+  mot.lang = /[぀-ヿ]/.test(mot.textContent) ? 'ja' : 'fr';
+  return impact;
+}
+
+function remplirFenetre(c) {
+  $('fenetre-jour').textContent = [`${c.jour} décembre`, c.etat === 'du-jour' ? 'case du jour' : null].filter(Boolean).join(' · ');
+  $('fenetre-anime').textContent = c.contenu?.anime ?? '';
   const corps = $('fenetre-corps');
   corps.replaceChildren();
 
@@ -137,12 +234,20 @@ function ouvrirCase(c) {
       corps.append(a);
     }
   }
-  $('fenetre').showModal();
 }
 
+// Trois façons de fermer : Échap (natif), le bouton « Fermer », un clic sur le fond.
 $('fermer').addEventListener('click', () => $('fenetre').close());
 $('fenetre').addEventListener('click', (e) => {
-  if (e.target === $('fenetre')) $('fenetre').close(); // clic à côté de la fenêtre
+  // Le fond compte comme la fenêtre elle-même : on vérifie que le clic tombe hors de son cadre.
+  if (e.target !== $('fenetre')) return;
+  const r = $('fenetre').getBoundingClientRect();
+  if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) $('fenetre').close();
+});
+$('fenetre').addEventListener('close', () => {
+  etatOuverture = 'repos';
+  caseOrigine?.focus();
+  caseOrigine = null;
 });
 
 function afficher(d) {

@@ -38,9 +38,20 @@
       <p id="fenetre-jour" class="fenetre-jour"></p>
       <button type="button" class="fermer" id="fermer" aria-label="Fermer la case">Fermer</button>
     </div>
+    <p id="fenetre-anime" class="fenetre-anime"></p>
     <h2 id="fenetre-titre"></h2>
     <div id="fenetre-corps" class="fenetre-corps"></div>
   </dialog>
+
+  <!-- L'impact joué au clic sur une case ouverte (flash, lignes de vitesse, onomatopée).
+       Décoratif : copié dans la page le temps de l'animation, puis retiré. -->
+  <template id="modele-impact">
+    <div class="impact" aria-hidden="true">
+      <div class="impact-flash"></div>
+      <div class="impact-lignes"></div>
+      <p class="impact-mot" lang="ja"></p>
+    </div>
+  </template>
 
   <script src="app.js" defer></script>
 </body>
