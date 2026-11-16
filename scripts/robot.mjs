@@ -48,6 +48,7 @@ const journal = [
   ['Case du jour', duJour ? String(duJour) : (d.fini ? 'aucune, calendrier terminé' : 'aucune')],
   ['Nouvelle(s) case(s) ouverte(s)', liste(nouvelles)],
   ...(refermees.length ? [['Case(s) refermée(s)', liste(refermees)]] : []),
+  ['Affiches trouvées', `${d.cases.filter((c) => c.contenu?.affiche).length}/${ouvertes.length}`],
   ['Version du code', d.version],
   ['Décision', publier ? `publication (empreinte ${d.empreinte})` : 'rien à publier, le site en ligne est déjà à jour'],
 ];

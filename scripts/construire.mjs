@@ -81,6 +81,27 @@ function nettoyer(c) {
   return propre;
 }
 
+/**
+ * Chez le robot seulement : demande à l'API Jikan l'adresse de l'affiche de chaque case OUVERTE
+ * (les cases fermées ne sont jamais demandées). Rien n'est écrit dans le journal.
+ * L'image reste chez MyAnimeList : la page la charge depuis cdn.myanimelist.net.
+ */
+async function ajouterAffiches(cases) {
+  for (const c of cases) {
+    const mal = c.contenu?.mal;
+    if (!Number.isInteger(mal)) continue;
+    try {
+      const rep = await fetch(`https://api.jikan.moe/v4/anime/${mal}`, { signal: AbortSignal.timeout(5000) });
+      if (rep.ok) {
+        const d = (await rep.json()).data;
+        const url = d?.images?.webp?.large_image_url || d?.images?.jpg?.large_image_url;
+        if (typeof url === 'string' && url.startsWith('https://cdn.myanimelist.net/')) c.contenu.affiche = url;
+      }
+    } catch { /* Jikan indisponible : la page essaiera elle-même */ }
+    await new Promise((r) => setTimeout(r, 400)); // Jikan accepte 3 demandes par seconde
+  }
+}
+
 function versionDuCode() {
   if (process.env.GITHUB_SHA) return process.env.GITHUB_SHA.slice(0, 7);
   try {
@@ -133,6 +154,8 @@ export async function preparerDonnees({ maintenant = new Date(), apercu = false,
       cases.push(c);
     }
   }
+
+  if (process.env.GITHUB_ACTIONS === 'true') await ajouterAffiches(cases);
 
   const donnees = {
     titre: reglages.titre,

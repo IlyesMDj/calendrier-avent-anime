@@ -253,7 +253,8 @@ async function afficherAffiche(c) {
   zone.hidden = true;
   const mal = c.contenu?.mal;
   if (!Number.isInteger(mal)) return;
-  const url = await chercherAffiche(mal);
+  const directe = c.contenu?.affiche;
+  const url = typeof directe === 'string' && directe.startsWith('https://cdn.myanimelist.net/') ? directe : await chercherAffiche(mal);
   if (!url || jeton !== ouvertureCourante) return; // pas d'affiche, ou une autre case a été ouverte entre-temps
   const img = document.createElement('img');
   img.alt = `Affiche de ${c.contenu.anime ?? 'l\'anime'}`;
