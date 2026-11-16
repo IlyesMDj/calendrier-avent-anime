@@ -45,7 +45,13 @@ async function lireContenus(problemes) {
   } else {
     return [];
   }
-  const brut = JSON.parse(texte);
+  let brut;
+  try {
+    brut = JSON.parse(texte);
+  } catch {
+    // Message volontairement vague : l'erreur de JSON citerait un morceau des textes dans le journal public.
+    throw new Error('Les textes des cases sont illisibles (JSON invalide). Vérifie contenu/cases.json puis relance npm run chiffrer.');
+  }
   return Array.isArray(brut) ? brut : brut.cases ?? [];
 }
 
