@@ -113,6 +113,13 @@ function creerCase(c, maintenant) {
   etiquette.textContent = c.etat === 'fermee' ? quandCourt(ouverture, maintenant) : MOTS[c.etat];
 
   bouton.append(cadre, icone, numero, etiquette);
+  if (c.contenu?.illustration) {
+    const vignette = document.createElement('span');
+    vignette.className = 'vignette';
+    vignette.setAttribute('aria-hidden', 'true');
+    vignette.textContent = c.contenu.illustration;
+    bouton.append(vignette);
+  }
 
   if (c.etat === 'fermee') {
     bouton.setAttribute('aria-disabled', 'true');
@@ -215,6 +222,7 @@ function creerImpact(bouton) {
 function remplirFenetre(c) {
   $('fenetre-jour').textContent = [`${c.jour} décembre`, c.etat === 'du-jour' ? 'case du jour' : null].filter(Boolean).join(' · ');
   $('fenetre-anime').textContent = c.contenu?.anime ?? '';
+  $('fenetre-illustration').textContent = c.contenu?.illustration ?? '';
   const corps = $('fenetre-corps');
   corps.replaceChildren();
 

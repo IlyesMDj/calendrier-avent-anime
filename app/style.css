@@ -592,3 +592,21 @@ h1 {
   85% { opacity: 1; }
   100% { opacity: 0; scale: 1.1; }
 }
+
+/* L'illustration de la case : des pictogrammes originaux sur une explosion de manga. */
+.fenetre-illustration {
+  margin: 10px auto 0; width: 132px; height: 132px; display: grid; place-items: center;
+  font-size: 3.4rem; line-height: 1; letter-spacing: -0.05em;
+  background: repeating-conic-gradient(from 0deg, var(--jaune) 0 10deg, var(--bulle) 10deg 20deg);
+  border: 4px solid var(--encre); border-radius: 50%; box-shadow: 5px 5px 0 var(--encre);
+  animation: illustration-entree 0.5s cubic-bezier(.2,1.6,.4,1) both;
+}
+.fenetre-illustration:empty { display: none; }
+@keyframes illustration-entree { from { transform: scale(0.2) rotate(-25deg); opacity: 0; } to { transform: none; opacity: 1; } }
+
+/* La vignette sur une case ouverte de la grille. */
+.case .vignette {
+  position: absolute; bottom: 6px; right: 8px; z-index: 2;
+  font-size: clamp(1rem, 4vw, 1.6rem); line-height: 1; pointer-events: none;
+}
+@media (prefers-reduced-motion: reduce) { .fenetre-illustration { animation: none; } }
