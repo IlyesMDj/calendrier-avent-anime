@@ -245,6 +245,18 @@ function remplirFenetre(c) {
   $('fenetre-anime').textContent = c.contenu?.anime ?? '';
   $('fenetre-illustration').textContent = c.contenu?.illustration ?? '';
   $('fenetre-illustration').hidden = false;
+  const imageZone = $('fenetre-image');
+  imageZone.replaceChildren();
+  imageZone.hidden = true;
+  const src = c.contenu?.fiche?.image;
+  if (src) {
+    const img = document.createElement('img');
+    img.src = src;
+    img.alt = c.contenu?.anime ?? '';
+    img.loading = 'lazy';
+    imageZone.append(img);
+    imageZone.hidden = false;
+  }
   remplirFiche(c.contenu?.fiche);
   const corps = $('fenetre-corps');
   corps.replaceChildren();

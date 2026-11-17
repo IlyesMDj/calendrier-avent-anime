@@ -612,7 +612,20 @@ h1 {
 @media (prefers-reduced-motion: reduce) { .fenetre-illustration { animation: none; } }
 
 
-/* La fiche AniList sous le nom de l'anime (des chiffres, pas d'image). */
+/* L'image de couverture AniList, encadrée comme une vignette de manga. */
+.fenetre-image {
+  margin: 12px auto 0; text-align: center;
+}
+.fenetre-image img {
+  max-width: 180px; max-height: 260px; width: auto; height: auto;
+  border: 4px solid var(--encre); box-shadow: 5px 5px 0 var(--encre);
+  object-fit: cover;
+}
+@media (width >= 720px) {
+  .fenetre-image img { max-width: 220px; max-height: 310px; }
+}
+
+/* La fiche AniList sous le nom de l'anime. */
 .fenetre-fiche { margin: 10px 0 4px; font-size: 0.95rem; font-weight: 700; }
 .fenetre-fiche:empty { display: none; }
 .fiche-lien { color: inherit; text-decoration-thickness: 2px; }

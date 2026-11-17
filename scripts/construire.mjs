@@ -89,7 +89,7 @@ async function ajouterFiches(cases, parJour) {
   const ouvertes = cases.filter((c) => c.contenu && Number.isInteger(parJour.get(c.jour)?.mal));
   if (!ouvertes.length) return;
   const ids = ouvertes.map((c) => parJour.get(c.jour).mal);
-  const query = 'query($ids:[Int]){Page(perPage:50){media(idMal_in:$ids,type:ANIME){idMal format status episodes seasonYear averageScore siteUrl studios(isMain:true){nodes{name}}}}}';
+  const query = 'query($ids:[Int]){Page(perPage:50){media(idMal_in:$ids,type:ANIME){idMal format status episodes seasonYear averageScore siteUrl coverImage{large} studios(isMain:true){nodes{name}}}}}';
   try {
     const rep = await fetch('https://graphql.anilist.co', {
       method: 'POST',
@@ -110,6 +110,7 @@ async function ajouterFiches(cases, parJour) {
       if (Number.isInteger(m.seasonYear)) fiche.annee = m.seasonYear;
       if (m.studios?.nodes?.[0]?.name) fiche.studio = String(m.studios.nodes[0].name).slice(0, 60);
       if (Number.isInteger(m.averageScore)) fiche.note = m.averageScore;
+      if (typeof m.coverImage?.large === 'string' && m.coverImage.large.startsWith('https://')) fiche.image = m.coverImage.large;
       if (typeof m.siteUrl === 'string' && m.siteUrl.startsWith('https://anilist.co/anime/')) fiche.url = m.siteUrl;
       c.contenu.fiche = fiche;
     }
