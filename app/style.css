@@ -460,16 +460,21 @@ h1 {
   font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
   clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%);
 }
-/* Le nom de l'anime : un grand bandeau-titre, comme sur la couverture d'un volume. */
+/* Le nom de l'anime : un bandeau-titre manga. */
 .fenetre-anime {
-  margin: 14px 0 6px; padding: 8px 14px 6px;
+  margin: 0; padding: 8px 14px 6px;
   background: var(--jaune); border: 4px solid var(--encre); box-shadow: 5px 5px 0 var(--encre);
   font-family: var(--police-cri); font-weight: 400; font-synthesis: none;
-  font-size: clamp(2rem, 8vw, 3.2rem); line-height: 1.02; letter-spacing: 0.03em;
-  color: var(--encre); text-shadow: 3px 3px 0 var(--bulle);
-  rotate: -1deg; overflow-wrap: anywhere;
+  font-size: clamp(1.6rem, 7vw, 2.8rem); line-height: 1.05; letter-spacing: 0.03em;
+  color: var(--encre); text-shadow: 2px 2px 0 var(--bulle);
+  overflow-wrap: anywhere;
 }
 .fenetre-anime:empty { display: none; }
+.a-image .fenetre-anime {
+  font-size: clamp(1.2rem, 4vw, 1.8rem);
+  padding: 6px 12px 4px;
+  box-shadow: 3px 3px 0 var(--encre);
+}
 /* Le titre de la case : un cartouche de légende. */
 .fenetre h2 {
   display: inline-block; max-width: 100%; margin: 14px 0 12px; padding: 4px 12px;
@@ -593,16 +598,65 @@ h1 {
   100% { opacity: 0; scale: 1.1; }
 }
 
-/* L'illustration de la case : des pictogrammes originaux sur une explosion de manga. */
+/* ---------- Vitrine : image de couverture et infos côte à côte ---------- */
+.fenetre-vitrine {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  margin: 14px 0 8px;
+  text-align: center;
+}
+.fenetre-vitrine.a-image { align-items: center; }
+@media (width >= 480px) {
+  .fenetre-vitrine.a-image {
+    flex-direction: row;
+    align-items: flex-start;
+    text-align: left;
+  }
+}
+
+.fenetre-info {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* L'image de couverture AniList. */
+.fenetre-image { flex-shrink: 0; }
+.fenetre-image img {
+  display: block;
+  width: 160px;
+  height: auto;
+  border: 4px solid var(--encre);
+  box-shadow: 5px 5px 0 var(--encre);
+}
+@media (width >= 720px) {
+  .fenetre-image img { width: 200px; }
+}
+
+/* L'illustration emoji : grande sans couverture, petite avec. */
 .fenetre-illustration {
-  margin: 10px auto 0; width: 132px; height: 132px; display: grid; place-items: center;
-  font-size: 3.4rem; line-height: 1; letter-spacing: -0.05em;
+  margin: 0 auto; display: grid; place-items: center;
+  width: 100px; height: 100px;
+  font-size: 2.6rem; line-height: 1; letter-spacing: -0.05em;
   background: repeating-conic-gradient(from 0deg, var(--jaune) 0 10deg, var(--bulle) 10deg 20deg);
-  border: 4px solid var(--encre); border-radius: 50%; box-shadow: 5px 5px 0 var(--encre);
+  border: 4px solid var(--encre); border-radius: 50%; box-shadow: 4px 4px 0 var(--encre);
   animation: illustration-entree 0.5s cubic-bezier(.2,1.6,.4,1) both;
 }
 .fenetre-illustration:empty { display: none; }
 @keyframes illustration-entree { from { transform: scale(0.2) rotate(-25deg); opacity: 0; } to { transform: none; opacity: 1; } }
+
+.a-image .fenetre-illustration {
+  width: auto; height: auto; margin: 0;
+  font-size: 1.5rem;
+  background: none; border: none; border-radius: 0; box-shadow: none;
+  animation: none; display: inline-block;
+}
 
 /* La vignette sur une case ouverte de la grille. */
 .case .vignette {
@@ -611,21 +665,38 @@ h1 {
 }
 @media (prefers-reduced-motion: reduce) { .fenetre-illustration { animation: none; } }
 
-
-/* L'image de couverture AniList, encadrée comme une vignette de manga. */
-.fenetre-image {
-  margin: 12px auto 0; text-align: center;
+/* La fiche AniList : pastilles d'information. */
+.fenetre-fiche {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  justify-content: center;
 }
-.fenetre-image img {
-  max-width: 180px; max-height: 260px; width: auto; height: auto;
-  border: 4px solid var(--encre); box-shadow: 5px 5px 0 var(--encre);
-  object-fit: cover;
-}
-@media (width >= 720px) {
-  .fenetre-image img { max-width: 220px; max-height: 310px; }
-}
-
-/* La fiche AniList sous le nom de l'anime. */
-.fenetre-fiche { margin: 10px 0 4px; font-size: 0.95rem; font-weight: 700; }
 .fenetre-fiche:empty { display: none; }
-.fiche-lien { color: inherit; text-decoration-thickness: 2px; }
+@media (width >= 480px) {
+  .a-image .fenetre-fiche { justify-content: flex-start; }
+}
+.fiche-tag {
+  padding: 2px 10px;
+  background: var(--bulle);
+  border: 2px solid var(--encre);
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+.fiche-lien {
+  display: inline-block;
+  padding: 2px 10px;
+  background: var(--encre);
+  color: var(--bulle);
+  border: 2px solid var(--encre);
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.4;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background 0.1s, border-color 0.1s;
+}
+.fiche-lien:hover { background: var(--accent); border-color: var(--accent); }

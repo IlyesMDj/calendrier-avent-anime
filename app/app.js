@@ -219,24 +219,24 @@ function creerImpact(bouton) {
   return impact;
 }
 
-/** La fiche AniList : épisodes, année, studio, note, et un lien vers la page de l'anime. */
+/** La fiche AniList : épisodes, année, studio, note, en pastilles séparées. */
 function remplirFiche(fiche) {
   const zone = $('fenetre-fiche');
   zone.replaceChildren();
   if (!fiche) return;
   const morceaux = [];
   if (fiche.format) morceaux.push(fiche.format === 'film' ? 'Film' : 'En cours');
-  else if (fiche.episodes) morceaux.push(`${fiche.episodes} épisode${fiche.episodes > 1 ? 's' : ''}`);
+  else if (fiche.episodes) morceaux.push(`${fiche.episodes} ep.`);
   if (fiche.annee) morceaux.push(String(fiche.annee));
   if (fiche.studio) morceaux.push(fiche.studio);
-  if (fiche.note) morceaux.push(`${fiche.note}/100`);
-  if (morceaux.length) zone.append(document.createTextNode(morceaux.join(' · ')));
+  if (fiche.note) morceaux.push(`${fiche.note} / 100`);
+  for (const texte of morceaux) zone.append(el('span', 'fiche-tag', texte));
   if (typeof fiche.url === 'string' && fiche.url.startsWith('https://anilist.co/anime/')) {
-    const a = el('a', 'fiche-lien', 'voir sur AniList');
+    const a = el('a', 'fiche-lien', 'AniList ↗');
     a.href = fiche.url;
     a.target = '_blank';
     a.rel = 'noopener noreferrer';
-    zone.append(document.createTextNode(morceaux.length ? ' · ' : ''), a);
+    zone.append(a);
   }
 }
 
@@ -244,10 +244,11 @@ function remplirFenetre(c) {
   $('fenetre-jour').textContent = [`${c.jour} décembre`, c.etat === 'du-jour' ? 'case du jour' : null].filter(Boolean).join(' · ');
   $('fenetre-anime').textContent = c.contenu?.anime ?? '';
   $('fenetre-illustration').textContent = c.contenu?.illustration ?? '';
-  $('fenetre-illustration').hidden = false;
+  const vitrine = $('fenetre-vitrine');
   const imageZone = $('fenetre-image');
   imageZone.replaceChildren();
   imageZone.hidden = true;
+  vitrine.classList.remove('a-image');
   const src = c.contenu?.fiche?.image;
   if (src) {
     const img = document.createElement('img');
@@ -256,6 +257,7 @@ function remplirFenetre(c) {
     img.loading = 'lazy';
     imageZone.append(img);
     imageZone.hidden = false;
+    vitrine.classList.add('a-image');
   }
   remplirFiche(c.contenu?.fiche);
   const corps = $('fenetre-corps');
