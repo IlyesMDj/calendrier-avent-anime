@@ -611,3 +611,8 @@ h1 {
 }
 @media (prefers-reduced-motion: reduce) { .fenetre-illustration { animation: none; } }
 
+
+/* La fiche AniList sous le nom de l'anime (des chiffres, pas d'image). */
+.fenetre-fiche { margin: 10px 0 4px; font-size: 0.95rem; font-weight: 700; }
+.fenetre-fiche:empty { display: none; }
+.fiche-lien { color: inherit; text-decoration-thickness: 2px; }

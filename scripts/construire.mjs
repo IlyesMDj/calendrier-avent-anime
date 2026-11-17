@@ -80,6 +80,42 @@ function nettoyer(c) {
   return propre;
 }
 
+/**
+ * Fiche de chaque case OUVERTE (épisodes, année, studio, note), demandée à l'API AniList
+ * en une seule requête. Les cases fermées ne sont jamais demandées, et aucune image n'est prise.
+ * Chez le robot seulement (ou avec FICHES=1 sur ton ordinateur).
+ */
+async function ajouterFiches(cases, parJour) {
+  const ouvertes = cases.filter((c) => c.contenu && Number.isInteger(parJour.get(c.jour)?.mal));
+  if (!ouvertes.length) return;
+  const ids = ouvertes.map((c) => parJour.get(c.jour).mal);
+  const query = 'query($ids:[Int]){Page(perPage:50){media(idMal_in:$ids,type:ANIME){idMal format status episodes seasonYear averageScore siteUrl studios(isMain:true){nodes{name}}}}}';
+  try {
+    const rep = await fetch('https://graphql.anilist.co', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify({ query, variables: { ids } }),
+      signal: AbortSignal.timeout(8000),
+    });
+    if (!rep.ok) return;
+    const media = (await rep.json())?.data?.Page?.media ?? [];
+    const parMal = new Map(media.map((m) => [m.idMal, m]));
+    for (const c of ouvertes) {
+      const m = parMal.get(parJour.get(c.jour).mal);
+      if (!m) continue;
+      const fiche = {};
+      if (m.format === 'MOVIE') fiche.format = 'film';
+      else if (Number.isInteger(m.episodes)) fiche.episodes = m.episodes;
+      else if (m.status === 'RELEASING') fiche.format = 'en cours';
+      if (Number.isInteger(m.seasonYear)) fiche.annee = m.seasonYear;
+      if (m.studios?.nodes?.[0]?.name) fiche.studio = String(m.studios.nodes[0].name).slice(0, 60);
+      if (Number.isInteger(m.averageScore)) fiche.note = m.averageScore;
+      if (typeof m.siteUrl === 'string' && m.siteUrl.startsWith('https://anilist.co/anime/')) fiche.url = m.siteUrl;
+      c.contenu.fiche = fiche;
+    }
+  } catch { /* AniList indisponible : la case s'affiche sans fiche */ }
+}
+
 function versionDuCode() {
   if (process.env.GITHUB_SHA) return process.env.GITHUB_SHA.slice(0, 7);
   try {
@@ -132,6 +168,8 @@ export async function preparerDonnees({ maintenant = new Date(), apercu = false,
       cases.push(c);
     }
   }
+
+  if (process.env.GITHUB_ACTIONS === 'true' || process.env.FICHES === '1') await ajouterFiches(cases, parJour);
 
   const donnees = {
     titre: reglages.titre,
